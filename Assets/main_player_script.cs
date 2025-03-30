@@ -1,5 +1,15 @@
 using UnityEngine;
+using System.IO;
 using static InteractableObject;
+
+[System.Serializable]
+public class GameData
+{
+    public float money;
+    // Тут можна додати інші дані для збереження:
+    // public List<string> purchasedItems;
+    // public int levelProgress;
+}
 
 public class main_player_script : MonoBehaviour
 {
@@ -9,18 +19,23 @@ public class main_player_script : MonoBehaviour
     public DynamicJoystick dynamicJoystick;
     public Rigidbody rb;
 
-    [Header("Money System")]
-    public float playerMoney = 0f;
+    [Header("UI References")]
     public TMPro.TextMeshProUGUI moneyText;
 
     [Header("Interaction Settings")]
-    [Tooltip("Дистанція для повної взаємодії")]
     public float closeInteractionDistance = 2f;
-    [Tooltip("Дистанція для попередження")]
     public float farInteractionDistance = 4f;
     public LayerMask interactableLayer;
 
     private InteractableObject currentInteractable;
+    private GameData gameData;
+    private string savePath;
+
+    void Awake()
+    {
+        savePath = Path.Combine(Application.persistentDataPath, "game_save.json");
+        LoadGameData();
+    }
 
     void Start()
     {
@@ -28,17 +43,67 @@ public class main_player_script : MonoBehaviour
         UpdateMoneyUI();
     }
 
-    private void Update()
+    private void OnApplicationQuit()
     {
-        CheckInteractables();
+        SaveGameData();
+    }
 
-        if (Input.GetKeyDown(KeyCode.E) && currentInteractable != null &&
-            GetDistanceTo(currentInteractable.transform) <= closeInteractionDistance)
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus) SaveGameData();
+    }
+
+    #region Save/Load System
+    private void SaveGameData()
+    {
+        string jsonData = JsonUtility.ToJson(gameData, true);
+        File.WriteAllText(savePath, jsonData);
+        Debug.Log("Game data saved to: " + savePath);
+    }
+
+    private void LoadGameData()
+    {
+        if (File.Exists(savePath))
         {
-            InteractWithObject();
+            string jsonData = File.ReadAllText(savePath);
+            gameData = JsonUtility.FromJson<GameData>(jsonData);
+            Debug.Log("Game data loaded successfully");
+        }
+        else
+        {
+            gameData = new GameData { money = 0f };
+            Debug.Log("New game data created");
         }
     }
 
+    public void ResetGameData()
+    {
+        gameData = new GameData { money = 0f };
+        SaveGameData();
+        UpdateMoneyUI();
+    }
+    #endregion
+
+    #region Money System
+    public float PlayerMoney
+    {
+        get => gameData.money;
+        set
+        {
+            gameData.money = value;
+            UpdateMoneyUI();
+            SaveGameData(); // Автозбереження при зміні
+        }
+    }
+
+    private void UpdateMoneyUI()
+    {
+        if (moneyText != null)
+            moneyText.text = $"Гроші: {PlayerMoney}$";
+    }
+    #endregion
+
+    #region Player Movement
     private void FixedUpdate()
     {
         HandleMovement();
@@ -52,6 +117,19 @@ public class main_player_script : MonoBehaviour
             rb.AddForce(direction.normalized * speed * Time.fixedDeltaTime, ForceMode.VelocityChange);
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+        }
+    }
+    #endregion
+
+    #region Interaction System
+    private void Update()
+    {
+        CheckInteractables();
+
+        if (Input.GetKeyDown(KeyCode.E) && currentInteractable != null &&
+            GetDistanceTo(currentInteractable.transform) <= closeInteractionDistance)
+        {
+            InteractWithObject();
         }
     }
 
@@ -75,30 +153,28 @@ public class main_player_script : MonoBehaviour
             }
         }
 
-        // Обробка зміни об'єкта
         if (currentInteractable != nearestObject)
         {
             if (currentInteractable != null)
-                currentInteractable.SetInteractState(InteractableObject.InteractState.None);
+                currentInteractable.SetInteractState(InteractState.None);
 
             currentInteractable = nearestObject;
         }
 
-        // Встановлення стану для поточного об'єкта
         if (currentInteractable != null)
         {
             float distance = GetDistanceTo(currentInteractable.transform);
             if (distance <= closeInteractionDistance)
             {
-                currentInteractable.SetInteractState(InteractableObject.InteractState.Active);
+                currentInteractable.SetInteractState(InteractState.Active);
             }
             else if (distance <= farInteractionDistance)
             {
-                currentInteractable.SetInteractState(InteractableObject.InteractState.Near);
+                currentInteractable.SetInteractState(InteractState.Near);
             }
             else
             {
-                currentInteractable.SetInteractState(InteractableObject.InteractState.None);
+                currentInteractable.SetInteractState(InteractState.None);
                 currentInteractable = null;
             }
         }
@@ -113,16 +189,11 @@ public class main_player_script : MonoBehaviour
     {
         if (currentInteractable.CompareTag("CashRegister"))
         {
-            playerMoney += 100f;
-            UpdateMoneyUI();
+            PlayerMoney += 100f; // Використовуємо властивість для авто-збереження
         }
+        // Додаткові типи взаємодій можна додати тут
     }
-
-    private void UpdateMoneyUI()
-    {
-        if (moneyText != null)
-            moneyText.text = $"Гроші: {playerMoney}$";
-    }
+    #endregion
 
     private void OnDrawGizmosSelected()
     {
@@ -130,5 +201,14 @@ public class main_player_script : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, closeInteractionDistance);
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, farInteractionDistance);
+    }
+    public bool TrySpendMoney(float amount)
+    {
+        if (PlayerMoney >= amount)
+        {
+            PlayerMoney -= amount;
+            return true;
+        }
+        return false;
     }
 }
