@@ -4,14 +4,15 @@ public class PlatformShopPoint : MonoBehaviour
 {
     [Header("Налаштування")]
     public float cost = 500f;
-    public GameObject platformPrefab; // Префаб платформи
-    public Vector3 spawnPositionOffset = new Vector3(0, 0.5f, 0);
+    public GameObject platformPrefab;
+    public GameObject wallPrefab;
+    public float wallCheckDistance = 1.5f;
 
     [Header("Візуальні ефекти")]
-    public GameObject purchasePrompt; // Текст "Натисніть E"
+    public GameObject purchasePrompt;
     public ParticleSystem purchaseEffect;
     public AudioClip purchaseSound;
-    public float destroyDelay = 0.5f; // Затримка перед знищенням
+    public float destroyDelay = 0.5f;
 
     private bool isPurchased = false;
     private bool playerInRange = false;
@@ -26,7 +27,6 @@ public class PlatformShopPoint : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (isPurchased || !other.CompareTag("Player")) return;
-
         playerInRange = true;
         if (purchasePrompt != null) purchasePrompt.SetActive(true);
     }
@@ -34,7 +34,6 @@ public class PlatformShopPoint : MonoBehaviour
     void OnTriggerExit(Collider other)
     {
         if (!other.CompareTag("Player")) return;
-
         playerInRange = false;
         if (purchasePrompt != null) purchasePrompt.SetActive(false);
     }
@@ -51,7 +50,6 @@ public class PlatformShopPoint : MonoBehaviour
     {
         var player = FindObjectOfType<main_player_script>();
         if (player == null || player.PlayerMoney < cost) return;
-
         CompletePurchase(player);
     }
 
@@ -60,18 +58,69 @@ public class PlatformShopPoint : MonoBehaviour
         isPurchased = true;
         player.PlayerMoney -= cost;
 
-        // Створення нової платформи
-        Vector3 spawnPosition = transform.position + spawnPositionOffset;
+        // Платформа на рівні Y=0
+        Vector3 spawnPosition = new Vector3(transform.position.x, 0, transform.position.z);
         Instantiate(platformPrefab, spawnPosition, Quaternion.identity);
 
-        // Відтворення ефектів
+        SpawnMissingWalls(spawnPosition);
         PlayPurchaseEffects();
-
-        // Вимкнення об'єкта
         DisableShopPoint();
-
-        // Знищення об'єкта після затримки
         Destroy(gameObject, destroyDelay);
+    }
+
+    void SpawnMissingWalls(Vector3 platformPosition)
+    {
+        if (wallPrefab == null) return;
+
+        Vector3 platformSize = platformPrefab.transform.localScale;
+        Vector3 wallSize = wallPrefab.transform.localScale;
+
+        // Напрямки для перевірки (ліво, право, вперед, назад)
+        Vector3[] directions = { Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+
+        foreach (Vector3 dir in directions)
+        {
+            CheckAndSpawnWall(platformPosition, dir, platformSize, wallSize);
+        }
+    }
+
+    void CheckAndSpawnWall(Vector3 platformPosition, Vector3 direction, Vector3 platformSize, Vector3 wallSize)
+    {
+        // Визначаємо довжину променя
+        float rayLength = direction.x != 0 ? platformSize.x / 2 + wallCheckDistance : platformSize.z / 2 + wallCheckDistance;
+
+        // Промінь на рівні Y=0
+        Vector3 rayOrigin = platformPosition;
+        rayOrigin.y = 0;
+
+        // Випускаємо промінь (без фільтрації по шарах)
+        if (!Physics.Raycast(rayOrigin, direction, out RaycastHit hit, rayLength))
+        {
+            // Розраховуємо позицію стіни
+            Vector3 wallPosition = platformPosition;
+
+            if (direction.x != 0) // Ліво/право
+            {
+                wallPosition.x += direction.x * (platformSize.x / 2 + wallSize.x / 2);
+                wallPosition.y = wallSize.y / 2; // Половина висоти стіни
+            }
+            else // Вперед/назад
+            {
+                wallPosition.z += direction.z * (platformSize.z / 2 + wallSize.z / 2);
+                wallPosition.y = wallSize.y / 2;
+            }
+
+            // Створюємо стіну
+            Quaternion wallRotation = Quaternion.LookRotation(direction);
+            Instantiate(wallPrefab, wallPosition, wallRotation);
+
+            // Візуалізація променя (для дебагу)
+            Debug.DrawRay(rayOrigin, direction * rayLength, Color.green, 2f);
+        }
+        else
+        {
+            Debug.DrawRay(rayOrigin, direction * rayLength, Color.red, 2f);
+        }
     }
 
     void PlayPurchaseEffects()
@@ -90,11 +139,8 @@ public class PlatformShopPoint : MonoBehaviour
 
     void DisableShopPoint()
     {
-        // Вимкнення всіх компонентів
         GetComponent<Collider>().enabled = false;
         if (purchasePrompt != null) purchasePrompt.SetActive(false);
-
-        // Вимкнення візуальної частини
         var renderer = GetComponent<Renderer>();
         if (renderer != null) renderer.enabled = false;
     }
