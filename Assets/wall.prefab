@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7745816176093825336}
   - component: {fileID: -1003142241908770475}
   - component: {fileID: 103575283733003981}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121,7 +121,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cost: 0
   platformPrefab: {fileID: 8782866739116441870, guid: 15b0c50c28a6d7e498d137c3212ab492, type: 3}
-  wallPrefab: {fileID: 5279306736538431208}
+  wallPrefabs:
+  - {fileID: 5279306736538431208}
+  - {fileID: 5279306736538431208}
   wallCheckDistance: 1.5
   purchasePrompt: {fileID: 0}
   purchaseEffect: {fileID: 0}

@@ -897,7 +897,7 @@ Transform:
   m_GameObject: {fileID: 758063018}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.042, y: 0.468, z: 0.482}
+  m_LocalPosition: {x: -0.042, y: 0.94, z: 0.482}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1373,7 +1373,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cost: 500
   platformPrefab: {fileID: 1186897700612382894, guid: 8e6869bf0713c3547ad4aa3ce9faacf0, type: 3}
-  wallPrefab: {fileID: 0}
+  wallPrefabs: []
   wallCheckDistance: 1.5
   purchasePrompt: {fileID: 0}
   purchaseEffect: {fileID: 0}
@@ -1578,7 +1578,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cost: 500
   platformPrefab: {fileID: 1186897700612382894, guid: 8e6869bf0713c3547ad4aa3ce9faacf0, type: 3}
-  wallPrefab: {fileID: 0}
+  wallPrefabs: []
   wallCheckDistance: 1.5
   purchasePrompt: {fileID: 0}
   purchaseEffect: {fileID: 0}

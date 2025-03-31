@@ -5,7 +5,7 @@ public class PlatformShopPoint : MonoBehaviour
     [Header("Налаштування")]
     public float cost = 500f;
     public GameObject platformPrefab;
-    public GameObject wallPrefab;
+    public GameObject[] wallPrefabs; // Масив варіантів стін
     public float wallCheckDistance = 1.5f;
 
     [Header("Візуальні ефекти")]
@@ -58,68 +58,56 @@ public class PlatformShopPoint : MonoBehaviour
         isPurchased = true;
         player.PlayerMoney -= cost;
 
-        // Платформа на рівні Y=0
         Vector3 spawnPosition = new Vector3(transform.position.x, 0, transform.position.z);
         Instantiate(platformPrefab, spawnPosition, Quaternion.identity);
 
-        SpawnMissingWalls(spawnPosition);
+        SpawnWalls(spawnPosition);
         PlayPurchaseEffects();
         DisableShopPoint();
         Destroy(gameObject, destroyDelay);
     }
 
-    void SpawnMissingWalls(Vector3 platformPosition)
+    void SpawnWalls(Vector3 platformPosition)
     {
-        if (wallPrefab == null) return;
+        // Якщо немає префабів, використовуємо перший (для зворотної сумісності)
+        GameObject wallToSpawn = wallPrefabs != null && wallPrefabs.Length > 0 ?
+            wallPrefabs[Random.Range(0, wallPrefabs.Length)] :
+            wallPrefabs[0];
 
         Vector3 platformSize = platformPrefab.transform.localScale;
-        Vector3 wallSize = wallPrefab.transform.localScale;
+        Vector3 wallSize = wallToSpawn.transform.localScale;
 
-        // Напрямки для перевірки (ліво, право, вперед, назад)
         Vector3[] directions = { Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
 
         foreach (Vector3 dir in directions)
         {
-            CheckAndSpawnWall(platformPosition, dir, platformSize, wallSize);
+            CheckAndSpawnWall(platformPosition, dir, platformSize, wallSize, wallToSpawn);
         }
     }
 
-    void CheckAndSpawnWall(Vector3 platformPosition, Vector3 direction, Vector3 platformSize, Vector3 wallSize)
+    void CheckAndSpawnWall(Vector3 platformPosition, Vector3 direction, Vector3 platformSize, Vector3 wallSize, GameObject wallPrefab)
     {
-        // Визначаємо довжину променя
         float rayLength = direction.x != 0 ? platformSize.x / 2 + wallCheckDistance : platformSize.z / 2 + wallCheckDistance;
-
-        // Промінь на рівні Y=0
         Vector3 rayOrigin = platformPosition;
         rayOrigin.y = 0;
 
-        // Випускаємо промінь (без фільтрації по шарах)
-        if (!Physics.Raycast(rayOrigin, direction, out RaycastHit hit, rayLength))
+        if (!Physics.Raycast(rayOrigin, direction, rayLength))
         {
-            // Розраховуємо позицію стіни
             Vector3 wallPosition = platformPosition;
 
-            if (direction.x != 0) // Ліво/право
+            if (direction.x != 0)
             {
                 wallPosition.x += direction.x * (platformSize.x / 2 + wallSize.x / 2);
-                wallPosition.y = wallSize.y / 2; // Половина висоти стіни
+                wallPosition.y = wallSize.y / 2;
             }
-            else // Вперед/назад
+            else
             {
                 wallPosition.z += direction.z * (platformSize.z / 2 + wallSize.z / 2);
                 wallPosition.y = wallSize.y / 2;
             }
 
-            // Створюємо стіну
             Quaternion wallRotation = Quaternion.LookRotation(direction);
             Instantiate(wallPrefab, wallPosition, wallRotation);
-
-            // Візуалізація променя (для дебагу)
-            Debug.DrawRay(rayOrigin, direction * rayLength, Color.green, 2f);
-        }
-        else
-        {
-            Debug.DrawRay(rayOrigin, direction * rayLength, Color.red, 2f);
         }
     }
 
