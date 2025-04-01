@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlatformShopPoint : MonoBehaviour
 {
     [Header("Налаштування")]
-    public float cost = 500f;
+    public float cost = 0f;
     public GameObject platformPrefab;
     public GameObject[] wallPrefabs; // Масив варіантів стін
     public float wallCheckDistance = 1.5f;
