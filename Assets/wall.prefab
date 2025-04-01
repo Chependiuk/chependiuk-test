@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7745816176093825336}
   - component: {fileID: -1003142241908770475}
   - component: {fileID: 103575283733003981}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,13 +120,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71ebb728119c8564ba254407e6b2c5d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cost: 50
+  cost: 0
   platformPrefab: {fileID: 8782866739116441870, guid: 15b0c50c28a6d7e498d137c3212ab492, type: 3}
   wallPrefabs:
   - {fileID: 5279306736538431208}
   - {fileID: 5279306736538431208, guid: 18f6cb49bfc6c494e9d7efa228a250bd, type: 3}
   wallCheckDistance: 1.5
-  purchasePrompt: {fileID: 0}
   purchaseEffect: {fileID: 0}
   purchaseSound: {fileID: 0}
   destroyDelay: 0.5
@@ -163,7 +162,7 @@ GameObject:
   - component: {fileID: 3779443240137342524}
   - component: {fileID: 9080047737865349691}
   - component: {fileID: 1867996415463418632}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plane (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -269,7 +268,7 @@ GameObject:
   - component: {fileID: 8606184275810308800}
   - component: {fileID: 5511032022332511696}
   - component: {fileID: 8787880780073447726}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -429,11 +428,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 4363f27e41925484e95ebf22ca736a2f, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8164078558771037576, guid: 4363f27e41925484e95ebf22ca736a2f, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
