@@ -5,8 +5,12 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public TextMeshProUGUI moneyText;
-    private float money = 1000f;
 
+    public float PlayerMoney { get; private set; } = 0f;
+    [Header("Àóä³î")]
+    [SerializeField] private AudioClip moneyAddSound;
+
+    
     private void Awake()
     {
         if (Instance == null)
@@ -20,18 +24,28 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void AddMoney(float amount)
+    {
+        PlayerMoney += amount;
+        UpdateMoneyUI();
+    }
+
     public bool TrySpendMoney(float amount)
     {
-        if (money < amount) return false;
-
-        money -= amount;
-        UpdateMoneyUI();
-        return true;
+        if (PlayerMoney >= amount)
+        {
+            PlayerMoney -= amount;
+            UpdateMoneyUI();
+            return true;
+        }
+        return false;
     }
 
     private void UpdateMoneyUI()
     {
         if (moneyText != null)
-            moneyText.text = $"Ãðîø³: {money}$";
+        {
+            moneyText.text = $"Ãðîø³: {PlayerMoney:F0}$";
+        }
     }
 }

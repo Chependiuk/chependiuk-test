@@ -3,58 +3,86 @@ using TMPro;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("UI Settings")]
-    [SerializeField] private TextMeshProUGUI interactionText;
-
-    [Header("Interaction Settings")]
-    [SerializeField] private float interactionDistance = 3f;
-    [SerializeField] private LayerMask interactableLayer;
-
-    private PlatformShopPoint currentInteractable;
+    [Header("Налаштування")]
+    public TextMeshProUGUI interactionText;
+    public float interactionDistance = 3f;
+    public LayerMask interactableLayer;
 
     private void Update()
     {
-        FindNearestInteractable();
-        HandleInteractionInput();
+        CheckForInteractables();
+        HandleInteraction();
     }
 
-    private void FindNearestInteractable()
+    private void CheckForInteractables()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, interactionDistance, interactableLayer);
-        PlatformShopPoint nearest = null;
-        float closestDistance = Mathf.Infinity;
+        GameObject closest = null;
+        float closestDist = Mathf.Infinity;
 
         foreach (Collider col in hitColliders)
         {
-            var interactable = col.GetComponent<PlatformShopPoint>();
-            if (interactable != null)
+            float dist = Vector3.Distance(transform.position, col.transform.position);
+            if (dist < closestDist && (col.GetComponent<PlatformShopPoint>() != null || col.GetComponent<CashRegister>() != null))
             {
-                float distance = Vector3.Distance(transform.position, col.transform.position);
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    nearest = interactable;
-                }
+                closestDist = dist;
+                closest = col.gameObject;
             }
         }
 
-        UpdateInteractionUI(nearest);
-        currentInteractable = nearest;
+        UpdateInteractionText(closest);
     }
 
-    private void UpdateInteractionUI(PlatformShopPoint interactable)
+    private void UpdateInteractionText(GameObject interactable)
     {
         if (interactionText == null) return;
 
-        interactionText.text = interactable != null ? interactable.GetInteractionText() : "";
+        if (interactable != null)
+        {
+            // Перевірка каси
+            var cashRegister = interactable.GetComponent<CashRegister>();
+            if (cashRegister != null)
+            {
+                interactionText.text = cashRegister.GetInteractionText();
+                return;
+            }
+
+            // Перевірка магазину
+            var shopPoint = interactable.GetComponent<PlatformShopPoint>();
+            if (shopPoint != null)
+            {
+                interactionText.text = shopPoint.GetInteractionText();
+                return;
+            }
+        }
+
+        interactionText.text = "";
     }
 
-    private void HandleInteractionInput()
+    private void HandleInteraction()
     {
-        if (Input.GetKeyDown(KeyCode.E) && currentInteractable != null)
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            currentInteractable.Interact();
-            interactionText.text = "";
+            Collider[] interactables = Physics.OverlapSphere(transform.position, interactionDistance, interactableLayer);
+
+            foreach (Collider col in interactables)
+            {
+                // Пріоритет касі
+                var cashRegister = col.GetComponent<CashRegister>();
+                if (cashRegister != null)
+                {
+                    cashRegister.Interact();
+                    return;
+                }
+
+                // Потім магазин
+                var shopPoint = col.GetComponent<PlatformShopPoint>();
+                if (shopPoint != null)
+                {
+                    shopPoint.Interact();
+                    return;
+                }
+            }
         }
     }
 
