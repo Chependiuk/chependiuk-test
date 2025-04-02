@@ -4,7 +4,7 @@ public class PlatformShopPoint : MonoBehaviour
 {
     [Header("Налаштування")]
     public float cost = 100f;
-    public GameObject platformPrefab;
+    public GameObject[] platformPrefabs; // Масив можливих платформ
     public GameObject[] wallPrefabs;
     public float wallCheckDistance = 1.5f;
 
@@ -29,8 +29,18 @@ public class PlatformShopPoint : MonoBehaviour
 
     private void BuildPlatform()
     {
+        if (platformPrefabs == null || platformPrefabs.Length == 0)
+        {
+            Debug.LogError("Не вказано префабів платформ!");
+            return;
+        }
+
         Vector3 spawnPos = new Vector3(transform.position.x, 0, transform.position.z);
-        GameObject platform = Instantiate(platformPrefab, spawnPos, Quaternion.identity);
+
+        // Випадковий вибір платформи з масиву
+        GameObject selectedPlatform = platformPrefabs[Random.Range(0, platformPrefabs.Length)];
+        GameObject platform = Instantiate(selectedPlatform, spawnPos, Quaternion.identity);
+
         SpawnWalls(spawnPos, platform);
     }
 

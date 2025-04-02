@@ -356,7 +356,7 @@ GameObject:
   - component: {fileID: 46563102167768829}
   - component: {fileID: -183852524003734463}
   m_Layer: 3
-  m_Name: floor
+  m_Name: floor lv2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -463,22 +463,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47e799211efcbc64a9b0d22f75ed11e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  level: 1
+  level: 2
   incomeAmount: 10
   incomeInterval: 5
   upgradeCost: 50
   upgradeDistance: 3
-  platformElements:
-  - elementPrefab: {fileID: 3125225557249013974, guid: c310b4ee291e1b040b07dd667b9e16ec, type: 3}
-    spawnPosition: {x: 0, y: 0, z: 0}
-    appearLevel: 0
-    persists: 0
-    spawnedInstance: {fileID: 0}
-  - elementPrefab: {fileID: 3125225557249013974, guid: c310b4ee291e1b040b07dd667b9e16ec, type: 3}
-    spawnPosition: {x: 0, y: 0, z: 0}
-    appearLevel: 0
-    persists: 0
-    spawnedInstance: {fileID: 0}
+  platformModels: []
   levelText: {fileID: 8022401855500220570}
   incomeText: {fileID: 6531229500182622280}
   upgradeEffect: {fileID: 0}

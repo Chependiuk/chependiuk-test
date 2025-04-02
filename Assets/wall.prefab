@@ -121,14 +121,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cost: 0
-  platformPrefab: {fileID: 8782866739116441870, guid: 15b0c50c28a6d7e498d137c3212ab492, type: 3}
+  platformPrefabs:
+  - {fileID: 8782866739116441870, guid: 15b0c50c28a6d7e498d137c3212ab492, type: 3}
+  - {fileID: 8782866739116441870, guid: 407a35cfbb97c1443bdd5cced204495e, type: 3}
   wallPrefabs:
   - {fileID: 5279306736538431208}
   - {fileID: 5279306736538431208, guid: 18f6cb49bfc6c494e9d7efa228a250bd, type: 3}
   wallCheckDistance: 1.5
   purchaseEffect: {fileID: 0}
   purchaseSound: {fileID: 0}
-  destroyDelay: 0.5
 --- !u!65 &103575283733003981
 BoxCollider:
   m_ObjectHideFlags: 0
