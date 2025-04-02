@@ -1,21 +1,23 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class CashRegister : MonoBehaviour
 {
     [Header("Налаштування")]
-    [SerializeField] private float moneyAmount = 150f;
-    [SerializeField] private float cooldownTime = 10f;
-    [SerializeField] private ParticleSystem moneyEffect;
-    [SerializeField] private AudioClip moneySound;
+    public float refillSpeed = 20f; // Гроші/секунду для автоматичного поповнення
+    public float maxMoneyCapacity = 500f;
 
-    [Header("Індикатор")]
-    [SerializeField] private MeshRenderer indicator;
-    [SerializeField] private Material readyMaterial;
-    [SerializeField] private Material cooldownMaterial;
+    [Header("Візуалізація")]
+    public ParticleSystem moneyEffect;
+    public AudioClip moneySound;
+    public Transform moneyVisual;
+    public TextMeshProUGUI fillStatusText;
 
-    private bool isReady = true;
     private AudioSource audioSource;
+    private Vector3 originalMoneyScale;
+    private float currentMoney;
+    private bool isRefilling;
 
     private void Start()
     {
@@ -24,39 +26,83 @@ public class CashRegister : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
-        UpdateIndicator();
+
+        originalMoneyScale = moneyVisual.localScale;
+        currentMoney = maxMoneyCapacity; // Починаємо з повної каси
+        UpdateVisuals();
+    }
+
+    private void Update()
+    {
+        // Автоматичне поповнення
+        if (currentMoney < maxMoneyCapacity && !isRefilling)
+        {
+            StartCoroutine(RefillCoroutine());
+        }
     }
 
     public string GetInteractionText()
     {
-        return isReady ? $"Отримати {moneyAmount}$ [E]" : "Каса оновлюється...";
+        float fillPercent = (currentMoney / maxMoneyCapacity) * 100f;
+        return $"Забрати всі {currentMoney:F0}$ [E]\nЗаповнення: {fillPercent:F0}%";
     }
 
     public void Interact()
     {
-        if (!isReady) return;
+        if (currentMoney <= 0) return;
 
-        GameManager.Instance.AddMoney(moneyAmount);
+        float amountToGive = currentMoney;
+        GameManager.Instance.AddMoney(amountToGive);
+        currentMoney = 0f;
+
         PlayEffects();
-        StartCoroutine(StartCooldown());
+        UpdateVisuals();
     }
 
-    private IEnumerator StartCooldown()
+    private IEnumerator RefillCoroutine()
     {
-        isReady = false;
-        UpdateIndicator();
+        isRefilling = true;
 
-        yield return new WaitForSeconds(cooldownTime);
+        while (currentMoney < maxMoneyCapacity)
+        {
+            float refillAmount = refillSpeed * Time.deltaTime;
+            currentMoney = Mathf.Min(currentMoney + refillAmount, maxMoneyCapacity);
+            UpdateVisuals();
+            yield return null;
+        }
 
-        isReady = true;
-        UpdateIndicator();
+        isRefilling = false;
+    }
+
+    private void UpdateVisuals()
+    {
+        // Оновлення 3D моделі
+        float fillRatio = currentMoney / maxMoneyCapacity;
+
+        // Параметри для більш виразного зростання
+        float minHeight = originalMoneyScale.y * 0f;  // Мінімальна висота (10% від оригіналу)
+        float maxHeight = originalMoneyScale.y * 30f;    // Максимальна висота (500% від оригіналу)
+
+        // Додаємо нелінійне зростання для більшого ефекту
+        float animatedFillRatio = Mathf.Pow(fillRatio, 0.7f); // Експоненційне зростання
+
+        moneyVisual.localScale = new Vector3(
+            originalMoneyScale.x,
+            Mathf.Lerp(minHeight, maxHeight, animatedFillRatio),
+            originalMoneyScale.z
+        );
+
+        // Оновлення тексту
+        float fillPercent = fillRatio * 100f;
+        fillStatusText.text = $"Каса: {fillPercent:F0}%";
+        fillStatusText.color = Color.Lerp(Color.red, Color.green, fillRatio);
     }
 
     private void PlayEffects()
     {
         if (moneyEffect != null)
         {
-            Instantiate(moneyEffect, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            Instantiate(moneyEffect, transform.position, Quaternion.identity);
         }
 
         if (moneySound != null)
@@ -65,17 +111,10 @@ public class CashRegister : MonoBehaviour
         }
     }
 
-    private void UpdateIndicator()
+    // Викликайте при покупках для поповнення каси
+    public void AddMoneyToRegister(float amount)
     {
-        if (indicator != null)
-        {
-            indicator.material = isReady ? readyMaterial : cooldownMaterial;
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(transform.position, new Vector3(1f, 0.5f, 1f));
+        currentMoney = Mathf.Min(currentMoney + amount, maxMoneyCapacity);
+        UpdateVisuals();
     }
 }

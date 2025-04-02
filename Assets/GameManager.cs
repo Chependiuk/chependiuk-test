@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     [Header("¿Û‰≥Ó")]
     [SerializeField] private AudioClip moneyAddSound;
 
-    
+
     private void Awake()
     {
         if (Instance == null)
