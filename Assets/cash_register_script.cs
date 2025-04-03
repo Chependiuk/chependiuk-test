@@ -96,11 +96,11 @@ public class CashRegister : MonoBehaviour
 
     public string GetInteractionText()
     {
-        return $"Каса [{interactKey}]\n" +
-               $"Грошей: {currentMoney}/{moneyLimit}$ ({(currentMoney / moneyLimit) * 100:F0}%)\n" +
-               $"Дохід: {incomeAmount}$/{incomeInterval}с\n" +
-               $"Апгрейд [{upgradeKey}]: {upgradeCost}$\n" +
-               $"Рівень: {upgradeLevel}";
+        return $"Cash regicter [{interactKey}]\n" +
+               $"Money: {currentMoney}/{moneyLimit}$ ({(currentMoney / moneyLimit) * 100:F0}%)\n" +
+               $"Income: {incomeAmount}$/{incomeInterval}с\n" +
+               $"Upgrade [{upgradeKey}]: {upgradeCost}$\n" +
+               $"Level: {upgradeLevel}";
     }
 
     public void Interact()

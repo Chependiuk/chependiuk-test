@@ -10,8 +10,7 @@ public class IncomePlatform : MonoBehaviour
     public float upgradeCost = 0f;
     public float upgradeDistance = 3f;
 
-    [Header("Елементи платформи за рівнями")]
-    public PlatformElement[] platformElements;
+   
 
     [Header("Візуальні елементи")]
     public TextMeshPro levelText;
@@ -22,22 +21,15 @@ public class IncomePlatform : MonoBehaviour
     private GameManager gameManager;
     private Transform playerTransform;
 
-    [System.Serializable]
-    public class PlatformElement
-    {
-        public GameObject elementPrefab; // Префаб елементу
-        public Vector3 spawnPosition; // Позиція відносно платформи
-        public int appearLevel; // На якому рівні з'являється
-        public bool persists; // Чи залишається на наступних рівнях
-        [HideInInspector] public GameObject spawnedInstance; // Створений екземпляр
-    }
+    
+   
 
     private void Start()
     {
         gameManager = GameManager.Instance;
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         UpdateUI();
-        SpawnPlatformElements();
+       
     }
 
     private void Update()
@@ -89,64 +81,25 @@ public class IncomePlatform : MonoBehaviour
         }
 
         UpdateUI();
-        UpdatePlatformElements();
+       
     }
 
     private void UpdateUI()
     {
         if (levelText != null)
         {
-            levelText.text = $"Рівень {level}";
+            levelText.text = $"Level {level}";
         }
 
         if (incomeText != null)
         {
-            incomeText.text = $"{incomeAmount}$ / {incomeInterval}с";
+            incomeText.text = $"{incomeAmount}$ / {incomeInterval}s";
         }
     }
 
-    private void SpawnPlatformElements()
-    {
-        if (platformElements == null || platformElements.Length == 0) return;
+    
+    
 
-        foreach (var element in platformElements)
-        {
-            if (element.elementPrefab != null && level >= element.appearLevel)
-            {
-                element.spawnedInstance = Instantiate(
-                    element.elementPrefab,
-                    transform.position + element.spawnPosition,
-                    Quaternion.identity,
-                    transform // Робимо платформу батьківським об'єктом
-                );
-            }
-        }
-    }
-
-    private void UpdatePlatformElements()
-    {
-        if (platformElements == null || platformElements.Length == 0) return;
-
-        foreach (var element in platformElements)
-        {
-            if (element.elementPrefab == null) continue;
-
-            // Якщо елемент ще не створений і настав його рівень
-            if (element.spawnedInstance == null && level >= element.appearLevel)
-            {
-                element.spawnedInstance = Instantiate(
-                    element.elementPrefab,
-                    transform.position + element.spawnPosition,
-                    Quaternion.identity,
-                    transform
-                );
-            }
-            // Якщо елемент існує і не повинен залишатися на наступних рівнях
-            else if (element.spawnedInstance != null && !element.persists && level > element.appearLevel)
-            {
-                Destroy(element.spawnedInstance);
-                element.spawnedInstance = null;
-            }
-        }
-    }
+   
+      
 }

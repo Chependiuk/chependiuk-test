@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6587436200798207888}
   - component: {fileID: 7348390961535403036}
   - component: {fileID: 379096329040191815}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: chair_27
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +92,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5541432105251593544}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: set_30
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 5627028765524278264}
   - component: {fileID: 4196263346271199225}
   - component: {fileID: 4883519692702231302}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: chair_28
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -211,7 +211,7 @@ GameObject:
   - component: {fileID: 2476978749836128119}
   - component: {fileID: 4691886295520315968}
   - component: {fileID: 4446160816806179293}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: table_7
   m_TagString: Untagged
   m_Icon: {fileID: 0}

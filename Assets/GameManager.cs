@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
     {
         if (moneyText != null)
         {
-            moneyText.text = $"Ãðîø³: {PlayerMoney:F0}$";
+            moneyText.text = $"Money: {PlayerMoney:F0}$";
         }
     }
 }

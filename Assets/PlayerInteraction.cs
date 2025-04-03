@@ -3,20 +3,20 @@ using TMPro;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("Налаштування клавіш")]
+    [Header("Key Settings")]
     public KeyCode interactKey = KeyCode.E;
     public KeyCode upgradeKey = KeyCode.U;
 
-    [Header("Відстані взаємодії")]
-    public float defaultInteractionDistance = 3f; // Для звичайних об'єктів
-    public float cashRegisterInteractionDistance = 1.5f; // Для каси
-    public float platformInteractionDistance = 2.5f; // Для платформ
-    public float shopInteractionDistance = 2f; // Для магазинів
+    [Header("Interaction Distances")]
+    public float defaultInteractionDistance = 3f; // For regular objects
+    public float cashRegisterInteractionDistance = 1.5f; // For cash registers
+    public float platformInteractionDistance = 2.5f; // For platforms
+    public float shopInteractionDistance = 2f; // For shops
 
-    [Header("Інтерфейс")]
+    [Header("UI")]
     public TextMeshProUGUI interactionText;
 
-    [Header("Фільтри")]
+    [Header("Filters")]
     public LayerMask interactableLayer;
 
     private void Update()
@@ -84,14 +84,14 @@ public class PlayerInteraction : MonoBehaviour
             {
                 cashRegister.interactKey = interactKey;
                 cashRegister.upgradeKey = upgradeKey;
-                interactionText.text = $"{cashRegister.GetInteractionText()}\n(Дистанція: {dist:F1}m";
+                interactionText.text = $"{cashRegister.GetInteractionText()}\n(Distance: {dist:F1}m";
                 return;
             }
 
             var shopPoint = interactable.GetComponent<PlatformShopPoint>();
             if (shopPoint != null)
             {
-                interactionText.text = $"{shopPoint.GetInteractionText()}\n(Дистанція: {dist:F1}m";
+                interactionText.text = $"{shopPoint.GetInteractionText()}\n(Distance: {dist:F1}m";
                 return;
             }
 
@@ -100,17 +100,17 @@ public class PlayerInteraction : MonoBehaviour
             {
                 if (dist <= requiredDist)
                 {
-                    interactionText.text = $"Апгрейд платформи [{upgradeKey}]\n" +
-                                         $"Рівень: {incomePlatform.level}\n" +
-                                         $"Дохід: {incomePlatform.incomeAmount}$\n" +
-                                         $"Ціна: {incomePlatform.upgradeCost}$\n" +
-                                         $"Дистанція: {dist:F1}m";
+                    interactionText.text = $"Platform Upgrade [{upgradeKey}]\n" +
+                                         $"Level: {incomePlatform.level}\n" +
+                                         $"Income: {incomePlatform.incomeAmount}$\n" +
+                                         $"Price: {incomePlatform.upgradeCost}$\n" +
+                                         $"Distance: {dist:F1}m";
                 }
                 else
                 {
-                    interactionText.text = $"Підійдіть ближче для апгрейду\n" +
-                                         $"Потрібно: ≤{requiredDist:F1}m\n" +
-                                         $"Зараз: {dist:F1}m";
+                    interactionText.text = $"Come closer to upgrade\n" +
+                                         $"Required: ≤{requiredDist:F1}m\n" +
+                                         $"Current: {dist:F1}m";
                 }
                 return;
             }
@@ -181,7 +181,7 @@ public class PlayerInteraction : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Відображення зон взаємодії
+        // Display interaction zones
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, defaultInteractionDistance);
 
