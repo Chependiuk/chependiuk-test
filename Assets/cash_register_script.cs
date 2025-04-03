@@ -1,120 +1,170 @@
 using UnityEngine;
-using System.Collections;
 using TMPro;
 
 public class CashRegister : MonoBehaviour
 {
     [Header("Налаштування")]
-    public float refillSpeed = 20f; // Гроші/секунду для автоматичного поповнення
-    public float maxMoneyCapacity = 500f;
+    public float moneyLimit = 500f;
+    public float upgradeCost = 1000f;
+    public float upgradeMultiplier = 1.5f;
+    public float interactionDistance = 2f;
+    public float incomeInterval = 10f;
+    public float incomeAmount = 25f;
 
-    [Header("Візуалізація")]
-    public ParticleSystem moneyEffect;
-    public AudioClip moneySound;
-    public Transform moneyVisual;
-    public TextMeshProUGUI fillStatusText;
+    [Header("Ефект апгрейду")]
+    public GameObject upgradeEffect;
+    public float maxEffectHeight = 3f;
+    public float minEffectHeight = 0.1f;
+    public float effectAnimationSpeed = 5f;
 
-    private AudioSource audioSource;
-    private Vector3 originalMoneyScale;
+
+
     private float currentMoney;
-    private bool isRefilling;
+    private int upgradeLevel = 1;
+    private GameManager gameManager;
+    private float timer;
+    private Vector3 originalEffectScale;
+    private bool isUpgrading;
+    private float upgradeAnimationTimer;
 
-    private void Start()
+    [HideInInspector] public KeyCode interactKey;
+    [HideInInspector] public KeyCode upgradeKey;
+
+    void Start()
     {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+        gameManager = GameManager.Instance;
+
+        if (upgradeEffect != null)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            originalEffectScale = upgradeEffect.transform.localScale;
+            upgradeEffect.SetActive(false);
         }
 
-        originalMoneyScale = moneyVisual.localScale;
-        currentMoney = maxMoneyCapacity; // Починаємо з повної каси
-        UpdateVisuals();
+      
     }
 
-    private void Update()
+    void Update()
     {
-        // Автоматичне поповнення
-        if (currentMoney < maxMoneyCapacity && !isRefilling)
+        timer += Time.deltaTime;
+        if (timer >= incomeInterval)
         {
-            StartCoroutine(RefillCoroutine());
+            AddMoney(incomeAmount);
+            timer = 0f;
+        }
+
+        UpdateEffectHeight();
+        HandleUpgradeAnimation();
+    }
+
+    void UpdateEffectHeight()
+    {
+        if (upgradeEffect == null || !upgradeEffect.activeSelf || isUpgrading) return;
+
+        float fillPercent = currentMoney / moneyLimit;
+        float targetHeight = Mathf.Lerp(minEffectHeight, maxEffectHeight, fillPercent);
+
+        Vector3 currentScale = upgradeEffect.transform.localScale;
+        float newHeight = Mathf.Lerp(currentScale.y, originalEffectScale.y * targetHeight, Time.deltaTime * effectAnimationSpeed);
+
+        upgradeEffect.transform.localScale = new Vector3(
+            originalEffectScale.x,
+            newHeight,
+            originalEffectScale.z
+        );
+    }
+
+    void HandleUpgradeAnimation()
+    {
+        if (!isUpgrading || upgradeEffect == null) return;
+
+        upgradeAnimationTimer += Time.deltaTime;
+        float pingPong = Mathf.PingPong(upgradeAnimationTimer * 10f, 1f);
+        float heightMultiplier = 1f + pingPong * 0.5f; // Коливання між 1.0 і 1.5
+
+        upgradeEffect.transform.localScale = new Vector3(
+            originalEffectScale.x,
+            originalEffectScale.y * maxEffectHeight * heightMultiplier,
+            originalEffectScale.z
+        );
+
+        if (upgradeAnimationTimer > 0.5f) // Тривалість анімації
+        {
+            isUpgrading = false;
+            upgradeAnimationTimer = 0f;
         }
     }
 
     public string GetInteractionText()
     {
-        float fillPercent = (currentMoney / maxMoneyCapacity) * 100f;
-        return $"Забрати всі {currentMoney:F0}$ [E]\nЗаповнення: {fillPercent:F0}%";
+        return $"Каса [{interactKey}]\n" +
+               $"Грошей: {currentMoney}/{moneyLimit}$ ({(currentMoney / moneyLimit) * 100:F0}%)\n" +
+               $"Дохід: {incomeAmount}$/{incomeInterval}с\n" +
+               $"Апгрейд [{upgradeKey}]: {upgradeCost}$\n" +
+               $"Рівень: {upgradeLevel}";
     }
 
     public void Interact()
     {
-        if (currentMoney <= 0) return;
-
-        float amountToGive = currentMoney;
-        GameManager.Instance.AddMoney(amountToGive);
-        currentMoney = 0f;
-
-        PlayEffects();
-        UpdateVisuals();
-    }
-
-    private IEnumerator RefillCoroutine()
-    {
-        isRefilling = true;
-
-        while (currentMoney < maxMoneyCapacity)
+        if (currentMoney > 0)
         {
-            float refillAmount = refillSpeed * Time.deltaTime;
-            currentMoney = Mathf.Min(currentMoney + refillAmount, maxMoneyCapacity);
-            UpdateVisuals();
-            yield return null;
-        }
+            gameManager.AddMoney(currentMoney);
+            currentMoney = 0;
 
-        isRefilling = false;
-    }
+            if (upgradeEffect != null)
+            {
+                upgradeEffect.SetActive(false);
+            }
 
-    private void UpdateVisuals()
-    {
-        // Оновлення 3D моделі
-        float fillRatio = currentMoney / maxMoneyCapacity;
-
-        // Параметри для більш виразного зростання
-        float minHeight = originalMoneyScale.y * 0f;  // Мінімальна висота (10% від оригіналу)
-        float maxHeight = originalMoneyScale.y * 30f;    // Максимальна висота (500% від оригіналу)
-
-        // Додаємо нелінійне зростання для більшого ефекту
-        float animatedFillRatio = Mathf.Pow(fillRatio, 0.7f); // Експоненційне зростання
-
-        moneyVisual.localScale = new Vector3(
-            originalMoneyScale.x,
-            Mathf.Lerp(minHeight, maxHeight, animatedFillRatio),
-            originalMoneyScale.z
-        );
-
-        // Оновлення тексту
-        float fillPercent = fillRatio * 100f;
-        fillStatusText.text = $"Каса: {fillPercent:F0}%";
-        fillStatusText.color = Color.Lerp(Color.red, Color.green, fillRatio);
-    }
-
-    private void PlayEffects()
-    {
-        if (moneyEffect != null)
-        {
-            Instantiate(moneyEffect, transform.position, Quaternion.identity);
-        }
-
-        if (moneySound != null)
-        {
-            audioSource.PlayOneShot(moneySound);
+          
         }
     }
 
-    // Викликайте при покупках для поповнення каси
-    public void AddMoneyToRegister(float amount)
+    public void TryUpgrade()
     {
-        currentMoney = Mathf.Min(currentMoney + amount, maxMoneyCapacity);
-        UpdateVisuals();
+        if (gameManager.TrySpendMoney(upgradeCost))
+        {
+            Upgrade();
+        }
+    }
+
+    void Upgrade()
+    {
+        upgradeLevel++;
+        moneyLimit *= upgradeMultiplier;
+        incomeAmount *= 1.3f;
+        upgradeCost *= 2f;
+
+        if (upgradeEffect != null)
+        {
+            upgradeEffect.SetActive(true);
+            isUpgrading = true;
+            upgradeAnimationTimer = 0f;
+        }
+
+        
+    }
+
+    public void AddMoney(float amount)
+    {
+        currentMoney += amount;
+        if (currentMoney > moneyLimit)
+        {
+            currentMoney = moneyLimit;
+        }
+
+        if (upgradeEffect != null && !upgradeEffect.activeSelf && currentMoney > 0)
+        {
+            upgradeEffect.SetActive(true);
+        }
+
+      
+    }
+
+
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, interactionDistance);
     }
 }

@@ -8,8 +8,10 @@ public class PlayerInteraction : MonoBehaviour
     public KeyCode upgradeKey = KeyCode.U;
 
     [Header("Відстані взаємодії")]
-    public float defaultInteractionDistance = 3f;  // Для магазинів, каси тощо
-    public float platformUpgradeMultiplier = 1f;   // Множник відстані для платформ
+    public float defaultInteractionDistance = 3f; // Для звичайних об'єктів
+    public float cashRegisterInteractionDistance = 1.5f; // Для каси
+    public float platformInteractionDistance = 2.5f; // Для платформ
+    public float shopInteractionDistance = 2f; // Для магазинів
 
     [Header("Інтерфейс")]
     public TextMeshProUGUI interactionText;
@@ -35,10 +37,7 @@ public class PlayerInteraction : MonoBehaviour
             float dist = Vector3.Distance(transform.position, col.transform.position);
             float requiredDist = GetRequiredInteractionDistance(col.gameObject);
 
-            if (dist < closestDist && dist <= requiredDist &&
-                (col.GetComponent<PlatformShopPoint>() != null ||
-                 col.GetComponent<CashRegister>() != null ||
-                 col.GetComponent<IncomePlatform>() != null))
+            if (dist < closestDist && dist <= requiredDist)
             {
                 closestDist = dist;
                 closest = col.gameObject;
@@ -48,23 +47,27 @@ public class PlayerInteraction : MonoBehaviour
         UpdateInteractionText(closest);
     }
 
-    private float GetMaxInteractionDistance()
-    {
-        // Повертає найбільшу з усіх можливих дистанцій
-        return Mathf.Max(defaultInteractionDistance, defaultInteractionDistance * platformUpgradeMultiplier);
-    }
-
     private float GetRequiredInteractionDistance(GameObject interactable)
     {
-        var incomePlatform = interactable.GetComponent<IncomePlatform>();
-        if (incomePlatform != null)
-        {
-            // Використовуємо множник для платформ
-            return incomePlatform.upgradeDistance * platformUpgradeMultiplier;
-        }
+        if (interactable.GetComponent<CashRegister>() != null)
+            return cashRegisterInteractionDistance;
 
-        // Для інших об'єктів - стандартна дистанція
+        if (interactable.GetComponent<IncomePlatform>() != null)
+            return platformInteractionDistance;
+
+        if (interactable.GetComponent<PlatformShopPoint>() != null)
+            return shopInteractionDistance;
+
         return defaultInteractionDistance;
+    }
+
+    private float GetMaxInteractionDistance()
+    {
+        float maxDistance = defaultInteractionDistance;
+        maxDistance = Mathf.Max(maxDistance, cashRegisterInteractionDistance);
+        maxDistance = Mathf.Max(maxDistance, platformInteractionDistance);
+        maxDistance = Mathf.Max(maxDistance, shopInteractionDistance);
+        return maxDistance;
     }
 
     private void UpdateInteractionText(GameObject interactable)
@@ -79,14 +82,16 @@ public class PlayerInteraction : MonoBehaviour
             var cashRegister = interactable.GetComponent<CashRegister>();
             if (cashRegister != null)
             {
-                interactionText.text = $"{cashRegister.GetInteractionText()}\n(Дистанція: {dist:F1}m)";
+                cashRegister.interactKey = interactKey;
+                cashRegister.upgradeKey = upgradeKey;
+                interactionText.text = $"{cashRegister.GetInteractionText()}\n(Дистанція: {dist:F1}m";
                 return;
             }
 
             var shopPoint = interactable.GetComponent<PlatformShopPoint>();
             if (shopPoint != null)
             {
-                interactionText.text = $"{shopPoint.GetInteractionText()}\n(Дистанція: {dist:F1}m)";
+                interactionText.text = $"{shopPoint.GetInteractionText()}\n(Дистанція: {dist:F1}m";
                 return;
             }
 
@@ -152,16 +157,22 @@ public class PlayerInteraction : MonoBehaviour
 
             foreach (Collider col in interactables)
             {
+                float dist = Vector3.Distance(transform.position, col.transform.position);
+                float requiredDist = GetRequiredInteractionDistance(col.gameObject);
+
+                if (dist > requiredDist) continue;
+
+                var cashRegister = col.GetComponent<CashRegister>();
+                if (cashRegister != null)
+                {
+                    cashRegister.TryUpgrade();
+                    return;
+                }
+
                 var incomePlatform = col.GetComponent<IncomePlatform>();
                 if (incomePlatform != null)
                 {
-                    float dist = Vector3.Distance(transform.position, incomePlatform.transform.position);
-                    float requiredDist = incomePlatform.upgradeDistance * platformUpgradeMultiplier;
-
-                    if (dist <= requiredDist)
-                    {
-                        incomePlatform.TryUpgrade();
-                    }
+                    incomePlatform.TryUpgrade();
                     return;
                 }
             }
@@ -174,7 +185,13 @@ public class PlayerInteraction : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, defaultInteractionDistance);
 
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, cashRegisterInteractionDistance);
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, GetMaxInteractionDistance());
+        Gizmos.DrawWireSphere(transform.position, platformInteractionDistance);
+
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, shopInteractionDistance);
     }
 }
