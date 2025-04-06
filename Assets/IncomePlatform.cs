@@ -3,14 +3,14 @@ using TMPro;
 
 public class IncomePlatform : MonoBehaviour
 {
+
     [Header("Налаштування")]
     public int level = 1;
     public float incomeAmount = 10f;
     public float incomeInterval = 5f;
     public float upgradeCost = 0f;
-    public float upgradeDistance = 3f;
-
-   
+    [Tooltip("Це значення тепер синхронізується з PlayerInteraction")]
+    public float upgradeDistance = 2.5f; // Має співпадати з platformInteractionDistance
 
     [Header("Візуальні елементи")]
     public TextMeshPro levelText;
@@ -19,17 +19,20 @@ public class IncomePlatform : MonoBehaviour
 
     private float timer;
     private GameManager gameManager;
-    private Transform playerTransform;
-
-    
+    private PlayerInteraction playerInteraction;
    
-
     private void Start()
     {
         gameManager = GameManager.Instance;
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+        playerInteraction = FindObjectOfType<PlayerInteraction>();
+        if (playerInteraction != null)
+        {
+            upgradeDistance = playerInteraction.platformInteractionDistance;
+        }
+        gameManager = GameManager.Instance;
+        
         UpdateUI();
-       
+        
     }
 
     private void Update()
@@ -54,15 +57,9 @@ public class IncomePlatform : MonoBehaviour
         }
     }
 
-    public void TryUpgrade() // Викликається з PlayerInteraction по клавіші
+    public void TryUpgrade()
     {
-        // Перевіряємо дистанцію до гравця
-        if (Vector3.Distance(transform.position, playerTransform.position) > upgradeDistance)
-        {
-            Debug.Log("Гравець надто далеко для апгрейду");
-            return;
-        }
-
+        // Перевірка грошей тепер без зайвих перевірок дистанції
         if (gameManager.TrySpendMoney(upgradeCost))
         {
             UpgradePlatform();
@@ -81,7 +78,6 @@ public class IncomePlatform : MonoBehaviour
         }
 
         UpdateUI();
-       
     }
 
     private void UpdateUI()
@@ -96,10 +92,4 @@ public class IncomePlatform : MonoBehaviour
             incomeText.text = $"{incomeAmount}$ / {incomeInterval}s";
         }
     }
-
-    
-    
-
-   
-      
 }

@@ -98,7 +98,7 @@ public class CashRegister : MonoBehaviour
     {
         return $"Cash regicter [{interactKey}]\n" +
                $"Money: {currentMoney}/{moneyLimit}$ ({(currentMoney / moneyLimit) * 100:F0}%)\n" +
-               $"Income: {incomeAmount}$/{incomeInterval}ñ\n" +
+               $"Income: {incomeAmount}$/{incomeInterval}s\n" +
                $"Upgrade [{upgradeKey}]: {upgradeCost}$\n" +
                $"Level: {upgradeLevel}";
     }

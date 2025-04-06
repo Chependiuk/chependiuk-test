@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 154282345311974199}
   - component: {fileID: 4970993090972257413}
   - component: {fileID: 6531229500182622280}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Text (TMP) (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 2553664295482032452}
   - component: {fileID: 1124754242029665377}
   - component: {fileID: 4583282220071445619}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Text (TMP) (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -386,7 +386,7 @@ GameObject:
   - component: {fileID: 5093921806878005296}
   - component: {fileID: 46563102167768829}
   - component: {fileID: -183852524003734463}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: floor 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -500,12 +500,6 @@ MonoBehaviour:
   incomeInterval: 5
   upgradeCost: 50
   upgradeDistance: 4.49
-  platformElements:
-  - elementPrefab: {fileID: 4452603189742235378, guid: 9e48aea696a0605428cd1e423d1fe5f8, type: 3}
-    spawnPosition: {x: 1, y: 0.4, z: 1.5}
-    appearLevel: 0
-    persists: 1
-    spawnedInstance: {fileID: 0}
   levelText: {fileID: 4583282220071445619}
   incomeText: {fileID: 6531229500182622280}
   upgradeEffect: {fileID: 0}
@@ -523,7 +517,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 181435089979073215, guid: b080b6c0793fce947bc4b320db6393bd, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 810954243021031936, guid: b080b6c0793fce947bc4b320db6393bd, type: 3}
       propertyPath: waitTime
@@ -958,11 +952,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f000e015d8a47774db4ad2a2f2da53e2, type: 3}
       propertyPath: m_Layer
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8164078558771037576, guid: f000e015d8a47774db4ad2a2f2da53e2, type: 3}
       propertyPath: m_Layer
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
