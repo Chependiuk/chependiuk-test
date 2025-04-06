@@ -9,8 +9,7 @@ public class IncomePlatform : MonoBehaviour
     public float incomeAmount = 10f;
     public float incomeInterval = 5f;
     public float upgradeCost = 0f;
-    [Tooltip("Це значення тепер синхронізується з PlayerInteraction")]
-    public float upgradeDistance = 2.5f; // Має співпадати з platformInteractionDistance
+    public float upgradeDistance = 2.5f; 
 
     [Header("Візуальні елементи")]
     public TextMeshPro levelText;
@@ -59,7 +58,7 @@ public class IncomePlatform : MonoBehaviour
 
     public void TryUpgrade()
     {
-        // Перевірка грошей тепер без зайвих перевірок дистанції
+        // Перевірка грошей 
         if (gameManager.TrySpendMoney(upgradeCost))
         {
             UpgradePlatform();

@@ -8,6 +8,11 @@ public class Menu : MonoBehaviour
         // Завантажуємо першу сцену в білді (змініть 0 на потрібний індекс)
         SceneManager.LoadScene(1);
     }
+    public void GotoMenu()
+    {
+       
+        SceneManager.LoadScene(0);
+    }
 
     public void ExitGame()
     {

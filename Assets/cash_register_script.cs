@@ -96,7 +96,7 @@ public class CashRegister : MonoBehaviour
 
     public string GetInteractionText()
     {
-        return $"Cash regicter [{interactKey}]\n" +
+        return $"Safe [{interactKey}]\n" +
                $"Money: {currentMoney}/{moneyLimit}$ ({(currentMoney / moneyLimit) * 100:F0}%)\n" +
                $"Income: {incomeAmount}$/{incomeInterval}s\n" +
                $"Upgrade [{upgradeKey}]: {upgradeCost}$\n" +

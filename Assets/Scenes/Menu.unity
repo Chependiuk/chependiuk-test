@@ -14419,7 +14419,7 @@ GameObject:
   - component: {fileID: 1806572917}
   - component: {fileID: 1806572916}
   m_Layer: 5
-  m_Name: counter_text
+  m_Name: Name_text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

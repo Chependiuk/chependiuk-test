@@ -3,7 +3,7 @@ using TMPro;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    public PlayerMovement playermovement;
+    private PlayerMovement playermovement;
     [Header("Key Settings")]
     public KeyCode interactKey = KeyCode.E;
     public KeyCode upgradeKey = KeyCode.U;
@@ -129,10 +129,10 @@ public class PlayerInteraction : MonoBehaviour
             if (dist <= requiredDist)
             {
 
-                interactionText.text = $"Platform Upgrade [{upgradeKey}]\n" +
-                                     $"Level: {incomePlatform.level}\n" +
-                                     $"Income: {incomePlatform.incomeAmount}$\n" +
+                interactionText.text = $"Point upgrade [{upgradeKey}]\n" +
                                      $"Price: {incomePlatform.upgradeCost}$\n" +
+                                     $"Current level: {incomePlatform.level}\n" +
+                                     $"Current income: {incomePlatform.incomeAmount}$\n" +
                                      $"Distance: {dist:F1}m";
             }
             else

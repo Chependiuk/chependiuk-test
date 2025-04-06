@@ -14,7 +14,7 @@ public class PlatformShopPoint : MonoBehaviour
 
     public string GetInteractionText()
     {
-        return $"Buy a wall ({cost}$) [E]";
+        return $"Buy territory ({cost}$) [E]";
     }
 
     public void Interact()

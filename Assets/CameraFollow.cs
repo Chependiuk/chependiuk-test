@@ -7,6 +7,7 @@ public class CameraFollow : MonoBehaviour
     public Vector3 offset = new Vector3(0f, 2f, -5f);  // Зміщення камери відносно цілі
     public float smoothSpeed = 5f;    // Плавність руху
 
+
     void LateUpdate()
     {
         if (target == null) return;  // Перевірка наявності цілі
