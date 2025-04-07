@@ -559,7 +559,7 @@ GameObject:
   - component: {fileID: -183852524003734463}
   m_Layer: 3
   m_Name: floor
-  m_TagString: Untagged
+  m_TagString: Platform
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

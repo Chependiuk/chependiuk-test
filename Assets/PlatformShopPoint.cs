@@ -1,10 +1,11 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class PlatformShopPoint : MonoBehaviour
 {
     [Header("Налаштування")]
     public float cost = 100f;
-    public GameObject[] platformPrefabs; // Масив можливих платформ
+    public GameObject[] platformPrefabs;
     public GameObject[] wallPrefabs;
     public float wallCheckDistance = 1.5f;
 
@@ -12,10 +13,19 @@ public class PlatformShopPoint : MonoBehaviour
     public ParticleSystem purchaseEffect;
     public AudioClip purchaseSound;
 
-    public string GetInteractionText()
+    public static List<GameObject> spawnedPlatforms = new List<GameObject>();
+    public static List<GameObject> spawnedWalls = new List<GameObject>();
+    public static List<Vector3> removedShopPoints = new List<Vector3>();
+    public static GameObject[] staticPlatformPrefabs;
+    public static GameObject[] staticWallPrefabs;
+
+    private void Awake()
     {
-        return $"Buy territory ({cost}$) [E]";
+        staticPlatformPrefabs = platformPrefabs;
+        staticWallPrefabs = wallPrefabs;
     }
+
+    public string GetInteractionText() => $"Buy territory ({cost}$) [E]";
 
     public void Interact()
     {
@@ -23,30 +33,30 @@ public class PlatformShopPoint : MonoBehaviour
         {
             BuildPlatform();
             PlayEffects();
+            removedShopPoints.Add(transform.position);
             Destroy(gameObject);
         }
     }
 
     private void BuildPlatform()
     {
-        if (platformPrefabs == null || platformPrefabs.Length == 0)
+        if (platformPrefabs.Length == 0)
         {
             Debug.LogError("Не вказано префабів платформ!");
             return;
         }
 
         Vector3 spawnPos = new Vector3(transform.position.x, 0, transform.position.z);
-
-        // Випадковий вибір платформи з масиву
         GameObject selectedPlatform = platformPrefabs[Random.Range(0, platformPrefabs.Length)];
         GameObject platform = Instantiate(selectedPlatform, spawnPos, Quaternion.identity);
+        spawnedPlatforms.Add(platform);
 
         SpawnWalls(spawnPos, platform);
     }
 
     private void SpawnWalls(Vector3 platformPos, GameObject platform)
     {
-        if (wallPrefabs == null || wallPrefabs.Length == 0) return;
+        if (wallPrefabs.Length == 0) return;
 
         GameObject wallPrefab = wallPrefabs[Random.Range(0, wallPrefabs.Length)];
         Vector3 platformSize = platform.GetComponent<Renderer>().bounds.size;
@@ -63,15 +73,12 @@ public class PlatformShopPoint : MonoBehaviour
                 wallPos.y = wallSize.y / 2;
 
                 if (dir.x != 0)
-                {
                     wallPos.x += dir.x * (platformSize.x / 2 + wallSize.x / 2);
-                }
                 else
-                {
                     wallPos.z += dir.z * (platformSize.z / 2 + wallSize.z / 2);
-                }
 
-                Instantiate(wallPrefab, wallPos, Quaternion.LookRotation(dir));
+                GameObject wall = Instantiate(wallPrefab, wallPos, Quaternion.LookRotation(dir));
+                spawnedWalls.Add(wall);
             }
         }
     }
@@ -79,13 +86,9 @@ public class PlatformShopPoint : MonoBehaviour
     private void PlayEffects()
     {
         if (purchaseEffect != null)
-        {
             Instantiate(purchaseEffect, transform.position, Quaternion.identity);
-        }
 
         if (purchaseSound != null)
-        {
             AudioSource.PlayClipAtPoint(purchaseSound, transform.position);
-        }
     }
 }

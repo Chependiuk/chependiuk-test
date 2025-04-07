@@ -3,13 +3,12 @@ using TMPro;
 
 public class IncomePlatform : MonoBehaviour
 {
-
     [Header("Налаштування")]
     public int level = 1;
     public float incomeAmount = 10f;
     public float incomeInterval = 5f;
     public float upgradeCost = 0f;
-    public float upgradeDistance = 2.5f; 
+    public float upgradeDistance = 2.5f;
 
     [Header("Візуальні елементи")]
     public TextMeshPro levelText;
@@ -19,7 +18,7 @@ public class IncomePlatform : MonoBehaviour
     private float timer;
     private GameManager gameManager;
     private PlayerInteraction playerInteraction;
-   
+
     private void Start()
     {
         gameManager = GameManager.Instance;
@@ -29,9 +28,8 @@ public class IncomePlatform : MonoBehaviour
             upgradeDistance = playerInteraction.platformInteractionDistance;
         }
         gameManager = GameManager.Instance;
-        
+
         UpdateUI();
-        
     }
 
     private void Update()
@@ -58,7 +56,6 @@ public class IncomePlatform : MonoBehaviour
 
     public void TryUpgrade()
     {
-        // Перевірка грошей 
         if (gameManager.TrySpendMoney(upgradeCost))
         {
             UpgradePlatform();
@@ -79,7 +76,8 @@ public class IncomePlatform : MonoBehaviour
         UpdateUI();
     }
 
-    private void UpdateUI()
+    // Змінюємо доступ з private на public
+    public void UpdateUI()
     {
         if (levelText != null)
         {
