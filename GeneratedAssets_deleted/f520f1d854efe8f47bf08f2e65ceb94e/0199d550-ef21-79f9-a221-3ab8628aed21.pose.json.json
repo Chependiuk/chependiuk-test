@@ -1,0 +1,11 @@
+{
+    "asset": "f520f1d854efe8f47bf08f2e65ceb94e",
+    "fileName": "0199d550-ef21-79f9-a221-3ab8628aed21.pose.json",
+    "prompt": "man stay and speking\n",
+    "negativePrompt": "",
+    "model": "a9c27ca4-3ec9-43e8-96cd-ee891aba64c5",
+    "modelName": "Text to Motion",
+    "customSeed": 313614487,
+    "w3CTraceId": "59323d58a4b4c945f35676d0e5a32387",
+    "isTrimmed": false
+}

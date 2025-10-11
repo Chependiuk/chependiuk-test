@@ -4,9 +4,11 @@ using TMPro;
 public class PlayerInteraction : MonoBehaviour
 {
     private PlayerMovement playermovement;
+
     [Header("Key Settings")]
     public KeyCode interactKey = KeyCode.E;
     public KeyCode upgradeKey = KeyCode.U;
+    public KeyCode chatKey = KeyCode.T;
 
     [Header("Interaction Distances")]
     public float defaultInteractionDistance = 3f;
@@ -17,40 +19,47 @@ public class PlayerInteraction : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI interactionText;
 
+    [Header("AI Dialogue")]
+    public NPCDialogue dialogueNPCReference;
+
     [Header("Filters")]
     public LayerMask interactableLayer;
+
+    private GameObject closestInteractableObject = null;
 
     private void Start()
     {
         playermovement = FindObjectOfType<PlayerMovement>();
-        
+        if (playermovement == null)
+        {
+            Debug.LogWarning("[DEBUG] PlayerMovement не знайдено!");
+        }
     }
+
     private void Update()
     {
         CheckForInteractables();
 
         if (Input.GetKeyDown(interactKey))
         {
-            HandleInteraction();
+            HandleInteraction(interactKey);
+        }
+
+        if (Input.GetKeyDown(chatKey))
+        {
+            HandleChat();
         }
 
         if (Input.GetKeyDown(upgradeKey))
         {
-            if (playermovement != null)
-            {
-                playermovement.is_upgrade_anim = true;
-            }
             HandleUpgrade();
-        }
-        else
-        {
-            playermovement.is_upgrade_anim = false;
         }
     }
 
     private void CheckForInteractables()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, GetMaxInteractionDistance(), interactableLayer);
+        Debug.Log($"[DEBUG] Знайдено {hitColliders.Length} об’єктів у зоні {GetMaxInteractionDistance()}m");
         GameObject closest = null;
         float closestDist = Mathf.Infinity;
 
@@ -58,6 +67,10 @@ public class PlayerInteraction : MonoBehaviour
         {
             float dist = Vector3.Distance(transform.position, col.transform.position);
             float requiredDist = GetRequiredInteractionDistance(col.gameObject);
+            NPCDialogue npc = col.gameObject.GetComponent<NPCDialogue>();
+            bool hasNPC = npc != null;
+            bool isEnabled = hasNPC ? npc.enabled : false;
+            Debug.Log($"[DEBUG] Об’єкт: {col.gameObject.name}, Відстань: {dist:F1}m, Має NPCDialogue: {hasNPC}, Увімкнений: {isEnabled}, Шар: {LayerMask.LayerToName(col.gameObject.layer)}, Активний: {col.gameObject.activeInHierarchy}");
 
             if (dist <= requiredDist && dist < closestDist)
             {
@@ -66,11 +79,17 @@ public class PlayerInteraction : MonoBehaviour
             }
         }
 
+        closestInteractableObject = closest;
         UpdateInteractionText(closest);
     }
 
     private float GetRequiredInteractionDistance(GameObject interactable)
     {
+        if (interactable == null) return defaultInteractionDistance;
+
+        if (interactable.GetComponent<NPCDialogue>() != null)
+            return defaultInteractionDistance;
+
         if (interactable.GetComponent<CashRegister>() != null)
             return cashRegisterInteractionDistance;
 
@@ -86,18 +105,14 @@ public class PlayerInteraction : MonoBehaviour
     private float GetMaxInteractionDistance()
     {
         return Mathf.Max(defaultInteractionDistance,
-                       cashRegisterInteractionDistance,
-                       platformInteractionDistance,
-                       shopInteractionDistance);
+                         cashRegisterInteractionDistance,
+                         platformInteractionDistance,
+                         shopInteractionDistance);
     }
 
     private void UpdateInteractionText(GameObject interactable)
     {
-        if (interactionText == null)
-        {
-            return;
-        }
-
+        if (interactionText == null) return;
         if (interactable == null)
         {
             interactionText.text = "";
@@ -107,19 +122,26 @@ public class PlayerInteraction : MonoBehaviour
         float dist = Vector3.Distance(transform.position, interactable.transform.position);
         float requiredDist = GetRequiredInteractionDistance(interactable);
 
+        NPCDialogue npc = interactable.GetComponent<NPCDialogue>();
+        if (npc != null)
+        {
+            interactionText.text = $"Поговорити з {npc.CharacterName} [{chatKey}]\n(Distance: {dist:F1}m)";
+            return;
+        }
+
         CashRegister cashRegister = interactable.GetComponent<CashRegister>();
         if (cashRegister != null)
         {
             cashRegister.interactKey = interactKey;
             cashRegister.upgradeKey = upgradeKey;
-            interactionText.text = $"{cashRegister.GetInteractionText()}\n(Distance: {dist:F1}m)";
+            interactionText.text = $"{cashRegister.GetInteractionText()}\n(Distance: {dist:F1}m)\nЧат [{chatKey}]";
             return;
         }
 
         PlatformShopPoint shopPoint = interactable.GetComponent<PlatformShopPoint>();
         if (shopPoint != null)
         {
-            interactionText.text = $"{shopPoint.GetInteractionText()}\n(Distance: {dist:F1}m)";
+            interactionText.text = $"{shopPoint.GetInteractionText()}\n(Distance: {dist:F1}m)\nЧат [{chatKey}]";
             return;
         }
 
@@ -128,19 +150,19 @@ public class PlayerInteraction : MonoBehaviour
         {
             if (dist <= requiredDist)
             {
-
                 interactionText.text = $"Point upgrade [{upgradeKey}]\n" +
                                      $"Price: {incomePlatform.upgradeCost}$\n" +
                                      $"Current level: {incomePlatform.level}\n" +
                                      $"Current income: {incomePlatform.incomeAmount}$\n" +
-                                     $"Distance: {dist:F1}m";
+                                     $"Distance: {dist:F1}m\n" +
+                                     $"Чат [{chatKey}]";
             }
             else
             {
-                
                 interactionText.text = $"Come closer to upgrade\n" +
                                      $"Required: ≤{requiredDist:F1}m\n" +
-                                     $"Current: {dist:F1}m";
+                                     $"Current: {dist:F1}m\n" +
+                                     $"Чат [{chatKey}]";
             }
             return;
         }
@@ -148,34 +170,25 @@ public class PlayerInteraction : MonoBehaviour
         interactionText.text = "";
     }
 
-    private void HandleInteraction()
+    private void HandleInteraction(KeyCode key)
     {
-        Collider[] interactables = Physics.OverlapSphere(transform.position, GetMaxInteractionDistance(), interactableLayer);
-        GameObject closestInteractable = null;
-        float closestDistance = Mathf.Infinity;
+        if (closestInteractableObject == null) return;
 
-        foreach (Collider col in interactables)
+        float dist = Vector3.Distance(transform.position, closestInteractableObject.transform.position);
+        float requiredDist = GetRequiredInteractionDistance(closestInteractableObject);
+
+        if (dist > requiredDist) return;
+
+        if (key == interactKey)
         {
-            float dist = Vector3.Distance(transform.position, col.transform.position);
-            float requiredDist = GetRequiredInteractionDistance(col.gameObject);
-
-            if (dist <= requiredDist && dist < closestDistance)
-            {
-                closestDistance = dist;
-                closestInteractable = col.gameObject;
-            }
-        }
-
-        if (closestInteractable != null)
-        {
-            CashRegister cashRegister = closestInteractable.GetComponent<CashRegister>();
+            CashRegister cashRegister = closestInteractableObject.GetComponent<CashRegister>();
             if (cashRegister != null)
             {
                 cashRegister.Interact();
                 return;
             }
 
-            PlatformShopPoint shopPoint = closestInteractable.GetComponent<PlatformShopPoint>();
+            PlatformShopPoint shopPoint = closestInteractableObject.GetComponent<PlatformShopPoint>();
             if (shopPoint != null)
             {
                 shopPoint.Interact();
@@ -184,39 +197,48 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    private void HandleChat()
+    {
+        if (closestInteractableObject == null) return;
+
+        float dist = Vector3.Distance(transform.position, closestInteractableObject.transform.position);
+        float requiredDist = GetRequiredInteractionDistance(closestInteractableObject);
+
+        if (dist > requiredDist) return;
+
+        NPCDialogue npc = closestInteractableObject.GetComponent<NPCDialogue>();
+        if (npc != null)
+        {
+            Debug.Log($"[DEBUG] Викликаю TryActivateDialogue для {closestInteractableObject.name}");
+            npc.TryActivateDialogue();
+        }
+        else
+        {
+            Debug.Log($"[DEBUG] Чат активовано з {closestInteractableObject.name}, але NPCDialogue не знайдено");
+        }
+    }
+
     private void HandleUpgrade()
     {
-        Collider[] interactables = Physics.OverlapSphere(transform.position, GetMaxInteractionDistance(), interactableLayer);
-        GameObject closestUpgradable = null;
-        float closestDistance = Mathf.Infinity;
+        if (closestInteractableObject == null) return;
 
-        foreach (Collider col in interactables)
+        float dist = Vector3.Distance(transform.position, closestInteractableObject.transform.position);
+        float requiredDist = GetRequiredInteractionDistance(closestInteractableObject);
+
+        if (dist > requiredDist) return;
+
+        CashRegister cashRegister = closestInteractableObject.GetComponent<CashRegister>();
+        if (cashRegister != null)
         {
-            float dist = Vector3.Distance(transform.position, col.transform.position);
-            float requiredDist = GetRequiredInteractionDistance(col.gameObject);
-
-            if (dist <= requiredDist && dist < closestDistance)
-            {
-                closestDistance = dist;
-                closestUpgradable = col.gameObject;
-            }
+            cashRegister.TryUpgrade();
+            return;
         }
 
-        if (closestUpgradable != null)
+        IncomePlatform incomePlatform = closestInteractableObject.GetComponent<IncomePlatform>();
+        if (incomePlatform != null)
         {
-            CashRegister cashRegister = closestUpgradable.GetComponent<CashRegister>();
-            if (cashRegister != null)
-            {
-                cashRegister.TryUpgrade();
-                return;
-            }
-
-            IncomePlatform incomePlatform = closestUpgradable.GetComponent<IncomePlatform>();
-            if (incomePlatform != null)
-            {
-                incomePlatform.TryUpgrade();
-                return;
-            }
+            incomePlatform.TryUpgrade();
+            return;
         }
     }
 
