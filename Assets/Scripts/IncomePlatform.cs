@@ -1,16 +1,17 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
-public class IncomePlatform : MonoBehaviour
+// !!! ВАЖЛИВО: IncomePlatform тепер реалізує IInteractable !!!
+// Вам потрібно створити окремий файл IInteractable.cs
+public class IncomePlatform : MonoBehaviour, IInteractable
 {
-    [Header("������������")]
+    [Header("Налаштування")]
     public int level = 1;
     public float incomeAmount = 10f;
     public float incomeInterval = 5f;
     public float upgradeCost = 0f;
-    public float upgradeDistance = 2.5f;
 
-    [Header("³������� ��������")]
+    [Header("Візуальні елементи")]
     public TextMeshPro levelText;
     public TextMeshPro incomeText;
     public GameObject upgradeEffect;
@@ -21,12 +22,12 @@ public class IncomePlatform : MonoBehaviour
 
     private void Start()
     {
-        gameManager = GameManager.Instance;
-        playerInteraction = FindObjectOfType<PlayerInteraction>();
-        if (playerInteraction != null)
-        {
-            upgradeDistance = playerInteraction.platformInteractionDistance;
-        }
+        // ВАЖЛИВО: Оскільки у цьому коді немає посилання на PlayerInteraction, 
+        // я залишаю FindObjectOfType<PlayerInteraction>() закоментованим,
+        // щоб не викликати помилки, якщо він вам не потрібен
+        // playerInteraction = FindObjectOfType<PlayerInteraction>();
+
+        // Припускаємо, що GameManager існує
         gameManager = GameManager.Instance;
 
         UpdateUI();
@@ -44,7 +45,10 @@ public class IncomePlatform : MonoBehaviour
 
     private void GenerateIncome()
     {
-        gameManager.AddMoney(incomeAmount);
+        if (gameManager != null)
+        {
+            gameManager.AddMoney(incomeAmount);
+        }
 
         if (incomeText != null)
         {
@@ -56,7 +60,7 @@ public class IncomePlatform : MonoBehaviour
 
     public void TryUpgrade()
     {
-        if (gameManager.TrySpendMoney(upgradeCost))
+        if (gameManager != null && gameManager.TrySpendMoney(upgradeCost))
         {
             UpgradePlatform();
         }
@@ -76,7 +80,6 @@ public class IncomePlatform : MonoBehaviour
         UpdateUI();
     }
 
-    
     public void UpdateUI()
     {
         if (levelText != null)
@@ -88,5 +91,68 @@ public class IncomePlatform : MonoBehaviour
         {
             incomeText.text = $"{incomeAmount}$ / {incomeInterval}s";
         }
+    }
+
+    // ======================================================
+    // МЕТОДИ IINTERACTABLE (НОВА ЛОГІКА ВЗАЄМОДІЇ)
+    // ======================================================
+
+    /// <summary>
+    /// Обробляє натискання клавіші гравцем (викликається PlayerInteraction)
+    /// </summary>
+    public void HandleInteraction(KeyCode key)
+    {
+        // Цей скрипт обробляє лише Upgrade, оскільки це платформа доходу
+        if (key == KeyCode.U)
+        {
+            TryUpgrade();
+        }
+        // Можна додати логіку чату, якщо PlatformDialogue знаходиться на цьому ж об'єкті:
+        // if (key == KeyCode.T && GetComponent<PlatformDialogue>() != null) { /* викликати чат */ }
+    }
+
+    /// <summary>
+    /// Повертає пріоритетний тип взаємодії для клавіші (для UI гравця)
+    /// </summary>
+    public InteractionType GetActiveInteractionType(KeyCode key)
+    {
+        // Якщо натиснуто U, ми завжди пропонуємо апгрейд
+        if (key == KeyCode.U)
+        {
+            return InteractionType.Upgrade;
+        }
+        // Якщо натиснуто T, ми перевіряємо, чи є на об'єкті компонент чату
+        if (key == KeyCode.T && GetComponent<PlatformDialogue>() != null)
+        {
+            return InteractionType.Chat;
+        }
+        return InteractionType.None;
+    }
+
+    /// <summary>
+    /// Повертає текст для UI гравця
+    /// </summary>
+    public string GetInteractionText(KeyCode key, float dist, float requiredDist)
+    {
+        // Текст для апгрейду
+        if (key == KeyCode.U)
+        {
+            if (dist <= requiredDist)
+            {
+                return $"Point upgrade [U]\nPrice: {upgradeCost}$\n" +
+                       $"Current level: {level}\n" +
+                       $"Current income: {incomeAmount}$\n" +
+                       $"Distance: {dist:F1}m";
+            }
+            return $"Come closer to upgrade\nRequired: ≤{requiredDist:F1}m\nCurrent: {dist:F1}m";
+        }
+
+        // Текст для чату (якщо об'єкт його підтримує)
+        if (key == KeyCode.T && GetComponent<PlatformDialogue>() != null)
+        {
+            return $"Поговорити [T] (На платформі)";
+        }
+
+        return "Взаємодія";
     }
 }

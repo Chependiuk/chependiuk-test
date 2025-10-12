@@ -2,16 +2,20 @@ using UnityEngine;
 using TMPro;
 using System.IO;
 
+// Додаємо вимогу, щоб на об'єкті був компонент AudioSource
+[RequireComponent(typeof(AudioSource))]
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public TextMeshProUGUI moneyText;
 
     public float PlayerMoney { get; private set; } = 0f;
+
     [Header("Аудіо")]
     [SerializeField] private AudioClip moneyAddSound;
 
-    
+    private AudioSource audioSource;
+
     [System.Serializable]
     private class SaveData
     {
@@ -25,6 +29,9 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            // Отримуємо компонент AudioSource з цього ж об'єкта
+            audioSource = GetComponent<AudioSource>();
+
             savePath = Path.Combine(Application.persistentDataPath, "saveData.json");
             LoadGame(); // Завантажуємо дані при старті
             UpdateMoneyUI();
@@ -37,8 +44,17 @@ public class GameManager : MonoBehaviour
 
     public void AddMoney(float amount)
     {
+        if (amount <= 0) return; // Не додаємо нуль або від'ємні значення
+
         PlayerMoney += amount;
         UpdateMoneyUI();
+
+        // Відтворюємо звук, якщо він є
+        if (moneyAddSound != null)
+        {
+            audioSource.PlayOneShot(moneyAddSound);
+        }
+
         SaveGame(); // Зберігаємо при зміні кількості грошей
     }
 
@@ -62,7 +78,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Метод для збереження гри
     public void SaveGame()
     {
         SaveData data = new SaveData
@@ -74,7 +89,6 @@ public class GameManager : MonoBehaviour
         File.WriteAllText(savePath, json);
     }
 
-    // Метод для завантаження гри
     public void LoadGame()
     {
         if (File.Exists(savePath))
@@ -85,7 +99,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Для тестування можна додати збереження при закритті гри
     private void OnApplicationQuit()
     {
         SaveGame();
