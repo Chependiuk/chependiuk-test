@@ -1,0 +1,20 @@
+{
+    "asset": "ce3756b658107bd4e939e9b929e7441e",
+    "fileName": "0199dab9-bfc0-74e5-a6d5-6f209c5d6f41.jpg",
+    "prompt": "nice office style text input field",
+    "negativePrompt": "",
+    "model": "81c7bc50-f1fa-4e43-96be-2baa3f6233b6",
+    "modelName": "UI Frame Generator",
+    "customSeed": -1,
+    "w3CTraceId": "f215467b0821196e7d0f4c6fefcfa08c",
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0
+}

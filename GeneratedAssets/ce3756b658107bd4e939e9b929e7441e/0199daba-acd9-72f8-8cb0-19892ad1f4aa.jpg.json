@@ -1,0 +1,20 @@
+{
+    "asset": "ce3756b658107bd4e939e9b929e7441e",
+    "fileName": "0199daba-acd9-72f8-8cb0-19892ad1f4aa.jpg",
+    "prompt": "nice office style button",
+    "negativePrompt": "",
+    "model": "81c7bc50-f1fa-4e43-96be-2baa3f6233b6",
+    "modelName": "UI Frame Generator",
+    "customSeed": -1,
+    "w3CTraceId": "ed795e3f26ef9d543191ca30e7426677",
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0
+}

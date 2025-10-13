@@ -1,0 +1,20 @@
+{
+    "asset": "d38309d202e73a148a326f0a238bb454",
+    "fileName": "0199da57-b37b-7a05-b0a1-5720ae072d82.png",
+    "prompt": "Dialogue cloud sprite",
+    "negativePrompt": "",
+    "model": "94c4260f-b988-40e7-b3d3-435b9f449bd0",
+    "modelName": "Flux.1 Dev",
+    "customSeed": -1,
+    "w3CTraceId": "29b24357dde1b1751494b3f53faa8578",
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0
+}

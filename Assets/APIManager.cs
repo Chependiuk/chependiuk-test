@@ -2,19 +2,34 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
 using TMPro;
-using System; // Необхідно для Action (метод зворотного виклику)
+using System;
 
 public class APIManager : MonoBehaviour
 {
-    // АКТУАЛЬНИЙ URL Google Apps Script вставлено тут
-    private const string GAS_URL = "https://script.google.com/macros/s/AKfycbwY0uTn8jw2Z1sYjqvgBZ-fKU-Tg3s0-XtLRRV9sSn6Uy5QMEtcOydnfiBoFuXuPr9piA/exec";
+    // --- Singleton Pattern ---
+    public static APIManager Instance { get; private set; }
+
+    private const string GAS_URL = "https://script.google.com/macros/s/AKfycbyEb48eQF-gC9L4uhFNQnULgECLnGAvmJilMZkFiWj_XdwPAS6Drhpl7cndwIWTNpx6CA/exec";
 
     [Header("UI Reference")]
     public TextMeshProUGUI debugResponseText;
 
+    private void Awake()
+    {
+        // Налаштування Singleton
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
     public void SendPromptToGemini(string prompt, Action<string> callback)
     {
-        Debug.Log($"APIManager викликано. Надсилаємо: {prompt.Substring(0, Mathf.Min(prompt.Length, 50))}...");
+        Debug.Log($"APIManager: Надсилаємо запит...");
         StartCoroutine(SendRequestCoroutine(prompt, callback));
     }
 
@@ -35,12 +50,11 @@ public class APIManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"Помилка запиту: {www.error}. Перевірте URL та розгортання скрипта GAS.");
-                geminiResponse = $"Помилка: Не вдалося підключитися. Перевірте GAS.";
+                Debug.LogError($"Помилка запиту: {www.error}.");
+                geminiResponse = "Помилка: Не вдалося підключитися.";
             }
 
             callback?.Invoke(geminiResponse);
-            Debug.Log("Відповідь Gemini: " + geminiResponse);
 
             if (debugResponseText != null)
             {
@@ -48,7 +62,4 @@ public class APIManager : MonoBehaviour
             }
         }
     }
-
-    void Start() { }
-    void Update() { }
 }

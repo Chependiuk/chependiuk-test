@@ -1,0 +1,20 @@
+{
+    "asset": "d38309d202e73a148a326f0a238bb454",
+    "fileName": "0199da58-d88e-7a57-b2f0-ce6b33b18819.jpg",
+    "prompt": "Dialogue text field ",
+    "negativePrompt": "",
+    "model": "2f9239be-1807-41a9-b07b-f6a0483a6f8b",
+    "modelName": "RPG Environment",
+    "customSeed": -1,
+    "w3CTraceId": "504e53ad17f639791c2aa19bd2032811",
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0
+}
