@@ -3,21 +3,14 @@ using TMPro;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("Key Settings")]
+    // --- ЗМІНЕНО: Тепер у нас лише одна клавіша для всіх дій ---
+    [Header("Налаштування")]
     public KeyCode interactKey = KeyCode.E;
-    public KeyCode upgradeKey = KeyCode.U;
-    public KeyCode chatKey = KeyCode.T;
-
-    [Header("Interaction Distances")]
-    public float interactionDistance = 3f; // Тепер одна загальна дистанція
-
-    [Header("UI")]
+    public float interactionDistance = 4f;
     public TextMeshProUGUI interactionText;
-
-    [Header("Filters")]
     public LayerMask interactableLayer;
 
-    private GameObject closestInteractableObject = null;
+    private IInteractable closestInteractable;
 
     private void Update()
     {
@@ -28,24 +21,21 @@ public class PlayerInteraction : MonoBehaviour
     private void CheckForInteractables()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, interactionDistance, interactableLayer);
-        GameObject closest = null;
-        float closestDist = Mathf.Infinity;
+        closestInteractable = null;
+        float closestDist = float.MaxValue;
 
         foreach (Collider col in hitColliders)
         {
+            IInteractable interactable = col.GetComponent<IInteractable>();
+            if (interactable == null) continue;
+
             float dist = Vector3.Distance(transform.position, col.transform.position);
             if (dist < closestDist)
             {
-                // Головна зміна: перевіряємо, чи є на об'єкті ХОЧА Б ОДИН з потрібних нам скриптів
-                if (col.GetComponent<PlatformController>() != null || col.GetComponent<CashRegister>() != null)
-                {
-                    closestDist = dist;
-                    closest = col.gameObject;
-                }
+                closestDist = dist;
+                closestInteractable = interactable;
             }
         }
-
-        closestInteractableObject = closest;
         UpdateInteractionText();
     }
 
@@ -53,58 +43,24 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (interactionText == null) return;
 
-        if (closestInteractableObject == null)
+        if (closestInteractable == null)
         {
             interactionText.text = "";
             return;
         }
 
-        // --- ЛОГІКА ДЛЯ КОЖНОГО ТИПУ ОБ'ЄКТІВ ---
-
-        PlatformController platform = closestInteractableObject.GetComponent<PlatformController>();
-        if (platform != null)
-        {
-            interactionText.text = platform.GetUIText();
-            return;
-        }
-
-        CashRegister cashRegister = closestInteractableObject.GetComponent<CashRegister>();
-        if (cashRegister != null)
-        {
-            // Припускаємо, що у CashRegister теж є метод GetUIText()
-            // interactionText.text = cashRegister.GetUIText();
-            interactionText.text = "Використати касу [E]";
-            return;
-        }
-
-        // Якщо додасте новий тип, доведеться писати нову перевірку тут...
+        // --- ЗМІНЕНО: Отримуємо текст лише для однієї клавіші ---
+        interactionText.text = closestInteractable.GetInteractionText(interactKey, 0, 0);
     }
 
     private void HandleInput()
     {
-        if (closestInteractableObject == null) return;
+        if (closestInteractable == null) return;
 
-        // --- ОБРОБКА НАТИСКАНЬ ДЛЯ КОЖНОГО ТИПУ ОБ'ЄКТІВ ---
-
-        PlatformController platform = closestInteractableObject.GetComponent<PlatformController>();
-        if (platform != null)
+        // --- ЗМІНЕНО: Передаємо команду лише по одній клавіші ---
+        if (Input.GetKeyDown(interactKey))
         {
-            if (Input.GetKeyDown(upgradeKey)) platform.Interact(upgradeKey);
-            if (Input.GetKeyDown(chatKey)) platform.Interact(chatKey);
-            return; // Виходимо, щоб не обробляти інші типи
+            closestInteractable.HandleInteraction(interactKey);
         }
-
-        CashRegister cashRegister = closestInteractableObject.GetComponent<CashRegister>();
-        if (cashRegister != null)
-        {
-            if (Input.GetKeyDown(interactKey))
-            {
-                // Припускаємо, що у CashRegister є метод Interact()
-                // cashRegister.Interact();
-            }
-            return;
-        }
-
-        // Якщо додасте новий тип, доведеться писати нову обробку клавіш тут...
     }
 }

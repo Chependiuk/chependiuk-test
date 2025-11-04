@@ -1,0 +1,4 @@
+repository "chependiuk-test/chependiuk test@7971951075129@cloud"
+  path "/"
+    br "/main"
+    co "/main"

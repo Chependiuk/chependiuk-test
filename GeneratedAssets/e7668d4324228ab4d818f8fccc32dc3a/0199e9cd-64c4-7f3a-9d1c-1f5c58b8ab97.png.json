@@ -1,0 +1,20 @@
+{
+    "asset": "e7668d4324228ab4d818f8fccc32dc3a",
+    "fileName": "0199e9cd-64c4-7f3a-9d1c-1f5c58b8ab97.png",
+    "prompt": "sqare table icon",
+    "negativePrompt": "",
+    "model": "63e0d07e-8325-4abf-960f-03a6fca8cc63",
+    "modelName": "Sticker Icons",
+    "customSeed": -1,
+    "w3CTraceId": "c2b4579c6b08d11cfeef39b3c361d6ce",
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0
+}

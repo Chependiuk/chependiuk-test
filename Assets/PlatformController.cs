@@ -1,7 +1,6 @@
 using UnityEngine;
 
-// БЕЗ IInteractable
-public class PlatformController : MonoBehaviour
+public class PlatformController : MonoBehaviour, IInteractable
 {
     private IncomePlatform incomeComponent;
     private PlatformDialogue dialogueComponent;
@@ -12,34 +11,51 @@ public class PlatformController : MonoBehaviour
         dialogueComponent = GetComponent<PlatformDialogue>();
     }
 
-    // Новий публічний метод для взаємодії
-    public void Interact(KeyCode key)
+    public void HandleInteraction(KeyCode key)
     {
+        // 'E' тепер тільки намагається відкрити діалог, якщо він ще не відкритий.
+        if (key == KeyCode.E && dialogueComponent != null && !dialogueComponent.IsDialogueOpen())
+        {
+            dialogueComponent.ToggleDialogue();
+        }
+
+        // 'U' працює як і раніше, для покращення.
         if (key == KeyCode.U && incomeComponent != null)
         {
             incomeComponent.TryUpgrade();
         }
-        else if (key == KeyCode.T && dialogueComponent != null)
-        {
-            dialogueComponent.ToggleDialogue();
-        }
     }
 
-    // Новий публічний метод для отримання тексту
-    public string GetUIText()
+    public InteractionType GetActiveInteractionType(KeyCode key)
     {
-        string upgradeText = "";
-        string dialogueText = "";
-
-        if (incomeComponent != null)
+        // Показуємо підказку для діалогу, тільки якщо він ще не відкритий.
+        if (key == KeyCode.E && dialogueComponent != null && !dialogueComponent.IsDialogueOpen())
         {
-            upgradeText = $"Покращити [U] (Ціна: {incomeComponent.upgradeCost:F0}$)\n";
-        }
-        if (dialogueComponent != null)
-        {
-            dialogueText = "Говорити [T]\n";
+            return InteractionType.General;
         }
 
-        return (upgradeText + dialogueText).Trim();
+        if (key == KeyCode.U && incomeComponent != null)
+        {
+            return InteractionType.Upgrade;
+        }
+
+        return InteractionType.None;
+    }
+
+    public string GetInteractionText(KeyCode key, float dist, float requiredDist)
+    {
+        // Збираємо підказку з усіх можливих дій.
+        // PlayerInteraction сам збере цей текст до купи.
+        if (key == KeyCode.U && incomeComponent != null)
+        {
+            return $"Покращити [U] (Ціна: {incomeComponent.upgradeCost:F0}$)";
+        }
+
+        if (key == KeyCode.E && dialogueComponent != null && !dialogueComponent.IsDialogueOpen())
+        {
+            return "Говорити [E]";
+        }
+
+        return "";
     }
 }

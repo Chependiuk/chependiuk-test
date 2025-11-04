@@ -4,38 +4,66 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
-public class PlatformDialogue : MonoBehaviour
+public class PlatformDialogue : MonoBehaviour, IInteractable
 {
     [Header("Налаштування")]
     public GameObject dialogueCanvasPrefab;
-    [Tooltip("Вкажіть номер портрета, який потрібно активувати (0, 1, 2...). Вкажіть -1, щоб нічого не показувати.")]
     public int portraitIndexToShow = -1;
 
     [Header("Генерація Імені")]
-    [Tooltip("Список імен, з яких буде вибрано випадкове для цього діалогу.")]
     public List<string> characterNames;
 
     [Header("Налаштування AI")]
     [TextArea(3, 10)]
-    public string aiPromptPrefix = "Ти — NPC-помічник...";
+    public string aiPromptPrefix = "Ти — NPC-помічник. Дай коротку відповідь на запитання гравця.";
 
-    [Header("Налаштування Керування")]
-    public string joystickObjectName = "Dynamic Joystick";
-
-    // Приватні посилання
     private GameObject currentDialogueInstance;
     private TextMeshProUGUI responseTextComponent;
     private TMP_InputField userInputField;
     private Button sendButton;
-    private GameObject joystickObject;
     private TextMeshProUGUI nameTextUI;
     private GameObject portraitsContainerUI;
+    private string generatedName;
 
-    private void Start()
+    /// <summary>
+    /// Публічний метод, щоб інші скрипти могли перевірити, чи відкритий діалог.
+    /// </summary>
+    public bool IsDialogueOpen()
     {
-        joystickObject = GameObject.Find(joystickObjectName);
-        if (joystickObject == null) { Debug.LogWarning($"Не вдалося знайти джойстик з назвою '{joystickObjectName}'."); }
+        return currentDialogueInstance != null;
     }
+
+    // --- Секція IInteractable ---
+
+    public void HandleInteraction(KeyCode key)
+    {
+        // 'E' або 'T' тільки відкривають діалог, якщо він закритий
+        if ((key == KeyCode.T || key == KeyCode.E) && !IsDialogueOpen())
+        {
+            OpenDialogue();
+        }
+    }
+
+    public InteractionType GetActiveInteractionType(KeyCode key)
+    {
+        // Показуємо підказку, тільки якщо діалог ще не відкритий
+        if (!IsDialogueOpen() && (key == KeyCode.T || key == KeyCode.E))
+        {
+            return InteractionType.Chat;
+        }
+        return InteractionType.None;
+    }
+
+    public string GetInteractionText(KeyCode key, float dist, float requiredDist)
+    {
+        if (!IsDialogueOpen() && (key == KeyCode.T || key == KeyCode.E))
+        {
+            return "Говорити [T]";
+        }
+        return "";
+    }
+
+    // --- Основна логіка ---
 
     public void ToggleDialogue()
     {
@@ -46,104 +74,131 @@ public class PlatformDialogue : MonoBehaviour
     private void OpenDialogue()
     {
         if (dialogueCanvasPrefab == null) return;
-        if (joystickObject != null) joystickObject.SetActive(false);
+        if (PlayerMovement.Instance != null) { PlayerMovement.Instance.SetMovementState(false); PlayerMovement.Instance.HideMainHUD(); }
+        if (CameraFollow.Instance != null) CameraFollow.Instance.ZoomIn();
 
         currentDialogueInstance = Instantiate(dialogueCanvasPrefab);
+        FindUIReferences();
 
-        // --- НОВА, РОЗУМНА ЛОГІКА ПОШУКУ ---
-        // Знаходимо всі текстові поля на префабі
-        TextMeshProUGUI[] allTexts = currentDialogueInstance.GetComponentsInChildren<TextMeshProUGUI>(true); // true - щоб знайти і неактивні
-        foreach (var text in allTexts)
+        Button closeButton = currentDialogueInstance.transform.Find("CloseButton")?.GetComponent<Button>();
+        if (closeButton != null)
         {
-            // Якщо це текст імені, зберігаємо його
-            if (text.gameObject.name == "NameText")
-            {
-                nameTextUI = text;
-            }
-            // Інакше, якщо це не текст на кнопці чи в полі вводу, вважаємо його головним полем для відповідей
-            else if (text.GetComponentInParent<Button>() == null && text.GetComponentInParent<TMP_InputField>() == null)
-            {
-                responseTextComponent = text;
-            }
+            closeButton.onClick.AddListener(CloseDialogue);
+        }
+        else
+        {
+            Debug.LogWarning("На префабі діалогу не знайдено кнопку з назвою 'CloseButton'!");
         }
 
-        // Знаходимо інші елементи
+        if (userInputField == null || sendButton == null || responseTextComponent == null)
+        {
+            Debug.LogError("Не вдалося знайти базові UI компоненти на префабі.");
+            CloseDialogue();
+            return;
+        }
+        PrepareDialogueWindow();
+    }
+
+    public void CloseDialogue()
+    {
+        if (currentDialogueInstance == null) return;
+        if (PlayerMovement.Instance != null) { PlayerMovement.Instance.SetMovementState(true); PlayerMovement.Instance.ShowMainHUD(); }
+        if (CameraFollow.Instance != null) CameraFollow.Instance.ZoomOut();
+
+        Destroy(currentDialogueInstance);
+        currentDialogueInstance = null;
+    }
+
+    private void FindUIReferences()
+    {
+        if (currentDialogueInstance == null) return;
         userInputField = currentDialogueInstance.GetComponentInChildren<TMP_InputField>(true);
         sendButton = currentDialogueInstance.GetComponentInChildren<Button>(true);
         Transform containerTransform = currentDialogueInstance.transform.Find("PortraitsContainer");
-        if (containerTransform != null) portraitsContainerUI = containerTransform.gameObject;
-
-        // Перевірка
-        if (userInputField == null || sendButton == null || responseTextComponent == null) { Debug.LogError("Не вдалося знайти базові UI компоненти (InputField, Button, ResponseText) на префабі."); CloseDialogue(); return; }
-
-        CameraFollow.Instance.ZoomIn();
-        PrepareDialogueWindow();
+        if (containerTransform != null)
+        {
+            portraitsContainerUI = containerTransform.gameObject;
+            Transform nameTextTransform = portraitsContainerUI.transform.Find("NameText");
+            if (nameTextTransform != null) nameTextUI = nameTextTransform.GetComponent<TextMeshProUGUI>();
+        }
+        foreach (var text in currentDialogueInstance.GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            if (text.GetComponentInParent<Button>() == null && text.GetComponentInParent<TMP_InputField>() == null && (nameTextUI == null || text != nameTextUI))
+            {
+                responseTextComponent = text;
+                break;
+            }
+        }
     }
 
     private void PrepareDialogueWindow()
     {
-        responseTextComponent.text = "Поставте ваше запитання...";
         userInputField.text = "";
-
         userInputField.Select();
         userInputField.ActivateInputField();
-
         sendButton.onClick.RemoveAllListeners();
         sendButton.onClick.AddListener(OnSendButtonClick);
-
         ActivatePortraitAndName();
     }
 
     private void ActivatePortraitAndName()
     {
         if (portraitsContainerUI == null) return;
-
         bool showPortrait = portraitIndexToShow >= 0;
         portraitsContainerUI.SetActive(showPortrait);
-
         if (showPortrait)
         {
-            // Проходимо по дочірніх об'єктах контейнера (це наші портрети)
             for (int i = 0; i < portraitsContainerUI.transform.childCount; i++)
             {
                 GameObject childObject = portraitsContainerUI.transform.GetChild(i).gameObject;
-                // Ігноруємо об'єкт з іменем
                 if (childObject.name == "NameText") continue;
-
-                // Вмикаємо потрібний портрет за індексом
                 childObject.SetActive(i == portraitIndexToShow);
             }
-
             if (nameTextUI != null)
             {
-                nameTextUI.text = GetRandomName();
+                if (string.IsNullOrEmpty(generatedName)) generatedName = GetRandomName();
+                nameTextUI.text = generatedName;
             }
         }
     }
 
     private string GetRandomName()
     {
-        if (characterNames != null && characterNames.Count > 0)
-        {
-            return characterNames[Random.Range(0, characterNames.Count)];
-        }
+        if (characterNames != null && characterNames.Count > 0) return characterNames[Random.Range(0, characterNames.Count)];
         return "Незнайомець";
-    }
-
-    private void CloseDialogue()
-    {
-        if (currentDialogueInstance == null) return;
-        if (joystickObject != null) joystickObject.SetActive(true);
-        EventSystem.current.SetSelectedGameObject(null);
-        Destroy(currentDialogueInstance);
-        currentDialogueInstance = null;
-        CameraFollow.Instance.ZoomOut();
     }
 
     public void OnSendButtonClick()
     {
-        if (string.IsNullOrWhiteSpace(userInputField.text)) { responseTextComponent.text = "Поле вводу не може бути порожнім."; return; }
-        string finalPrompt = aiPromptPrefix + userInputField.text;
+        if (userInputField == null) return;
+        string userInput = userInputField.text;
+        if (string.IsNullOrWhiteSpace(userInput))
+        {
+            responseTextComponent.text = "Поле вводу не може бути порожнім.";
+            return;
+        }
+
+        if (userInput.ToLower().Contains("прокачай"))
+        {
+            IncomePlatform platform = GetComponentInParent<IncomePlatform>();
+            if (platform != null)
+            {
+                platform.TryUpgrade();
+                responseTextComponent.text = $"Рівень об'єкта підвищено до {platform.level}!";
+                userInputField.text = "";
+                userInputField.ActivateInputField();
+                return;
+            }
+            else
+            {
+                responseTextComponent.text = "Тут нічого покращувати.";
+                userInputField.text = "";
+                userInputField.ActivateInputField();
+                return;
+            }
+        }
+
+        string finalPrompt = aiPromptPrefix + userInput;
         responseTextComponent.text = "Аналізую ваш запит...";
         sendButton.interactable = false;
         EventSystem.current.SetSelectedGameObject(null);
@@ -152,6 +207,11 @@ public class PlatformDialogue : MonoBehaviour
 
     private void OnGeminiResponseReceived(string response)
     {
-        if (currentDialogueInstance != null) { responseTextComponent.text = response; sendButton.interactable = true; }
+        if (currentDialogueInstance != null)
+        {
+            responseTextComponent.text = response;
+            sendButton.interactable = true;
+            if (userInputField != null) userInputField.ActivateInputField();
+        }
     }
 }

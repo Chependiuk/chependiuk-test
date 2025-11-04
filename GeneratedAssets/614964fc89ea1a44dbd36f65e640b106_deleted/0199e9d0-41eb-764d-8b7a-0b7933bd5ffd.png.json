@@ -1,0 +1,20 @@
+{
+    "asset": "614964fc89ea1a44dbd36f65e640b106",
+    "fileName": "0199e9d0-41eb-764d-8b7a-0b7933bd5ffd.png",
+    "prompt": "hpme wall\n",
+    "negativePrompt": "",
+    "model": "63e0d07e-8325-4abf-960f-03a6fca8cc63",
+    "modelName": "Sticker Icons",
+    "customSeed": -1,
+    "w3CTraceId": "83c58ec25ed1ed0dda8c11daca287410",
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0
+}
